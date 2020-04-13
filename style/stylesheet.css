@@ -1,0 +1,187 @@
+* {
+font-family: Arial, Helvetica, sans-serif;
+margin:0;
+padding:0;
+}
+
+html, body {
+height: 100%;
+/*background-color: #003545;*/
+}
+
+
+header {
+margin-bottom: 60px;
+}
+
+h1 {
+font-family: 'Volkhov', serif;
+font-size: 2.5em;
+color: #ccc;
+}
+
+h2 {
+font-family: 'Volkhov', serif;
+font-size: 0.95em;
+color: #151515;
+}
+
+p, li, ol {
+font-family: 'Roboto', Arial, sans-serif;
+font-size: 0.875em;
+line-height: 1.3em;
+color: #e0e0e0;
+}
+
+
+table {
+border-collapse: collapse;
+width: 100%;
+background-color: #e0e0e0;
+}
+
+table tbody tr:nth-child(odd){ 
+background-color: #3c6562; 
+}
+
+table tbody tr:nth-child(even){
+background-color: #3c654a;
+}
+
+table th {
+font-family: 'Roboto', Arial, sans-serif;
+font-size: 0.938em;
+color: #ccc;
+background-color: #00454a;
+border: 1px solid #2e2e2e;
+width: 7em;
+padding-top: 7px;
+padding-bottom: 7px;
+}
+
+table td {
+font-family: 'Roboto', Arial, sans-serif;
+font-size: 0.938em;
+text-align: center;
+padding: 1px 4px;
+border: 1px solid #2e2e2e;
+color: #e0e0e0;
+}
+
+.btn {
+border: solid 1px black;
+width: 35px;
+border-radius: 4px;
+margin: 2px;
+box-shadow: 1px 1px #002e33;
+background-color: #4d8c74;
+}
+
+.btn:hover{
+background-color: #ccc;
+}
+
+/* Removes blue border, but affects accesibility
+.btn:focus {
+outline: 0;
+}
+*/
+
+#button-box {
+margin-bottom: 20px;
+padding: 8px 8px 14px 8px;
+width: 250px;
+}
+
+#btn-reset, #btn-roll {
+border: solid 1px black;
+width: 8em;
+height: 3em;
+border-radius: 4px;
+margin: 2px 10px 15px 2px;
+box-shadow: 2px 2px #002e33;
+color: #e0e0e0;
+}
+
+/* Removes blue border, but affects accesibility
+#btn-reset:focus, #btn-roll:focus {
+outline:0;
+}
+*/
+
+
+input[type=submit] {
+background-color: #00454a;
+color: #f1e68e;
+font-weight: bold;
+padding: 4px;
+border-radius: 6px;
+}
+
+input[type=submit]:hover {
+background-color: grey;
+color: black;
+padding: 4px;
+border-radius: 6px;
+}
+
+.clear { clear: both;}
+
+#wrapper {
+min-height: 100%;
+height: auto !important;
+margin:0 auto -30px;
+background-color: #003545;
+}
+
+#center {
+width: 85%;
+max-width: 1100px;
+margin:0 auto; 
+padding-top: 55px;
+padding-bottom:10px;
+height: 100%;
+}
+
+#diag-box {
+margin-bottom: 10px;
+border: 1px solid black;
+padding: 8px;
+width: 250px;
+background-color: white;
+border-radius: 8px;
+}
+
+#dice-box {
+width: 260px;
+float: left;
+padding-left: 10px;
+padding-bottom: 15px;
+display: inline-block;
+}
+
+#special {
+width: 80px;
+float: right;
+}
+
+#powers-box {
+height: 70px;
+width: 290px;
+padding-left: 35px;
+float: left;
+display: inline-block;
+}
+
+a {
+font-weight: bold;
+font-size: 0.938em;
+line-height: 1.3em;
+color: white;
+}
+
+footer {
+font-family: 'Roboto', Arial, sans-serif;
+margin-top: 50px;
+margin-bottom: 50px;
+}
