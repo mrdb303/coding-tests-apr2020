@@ -172,13 +172,14 @@ Powers.prototype = {
 };
 
 
-// This factory is for generating creature names that are linked to the
+
+// This class is for generating creature names that are linked to the
 // creature type.
 // After consideration, I was of the opinion that names should be
 // suited to creature types (i.e. Trolls with names indicating
 // little intelligence, witches with female names etc).
 // 
-// This uses static variables for tracking which creature names have 
+// This tracks which creature names have 
 // already been issued to avoid the name being issued again.
 // Should an extreme number of creatures be generated that exceeds
 // the number of names available, the names will wrap around and start
@@ -186,12 +187,82 @@ Powers.prototype = {
 // 
 // The name issuing functionality has been decoupled from the creature
 // creation class on purpose, although creature type name must be valid. 
-// This is in case there is a stipulation in the challenge to 
-// only use a single name list.
+
+function CreatureNames(availableNames) {
+
+	this.availableNames = availableNames;
+	this.creatureCountMax = availableNames.length;
+	this.creatureTypeArrIndex = 0;
+	this.issuedName = '';
+	this.shuffleNames(this.availableNames);
+}
+
+CreatureNames.prototype = {
+	constructor: CreatureNames,
+
+	getName: function() {
+
+		if(this.creatureTypeArrIndex === this.creatureCountMax) this.creatureTypeArrIndex = 0;
+		this.issuedName = this.availableNames[this.creatureTypeArrIndex];
+		this.creatureTypeArrIndex++;
+		
+		return this.issuedName;
+	},
+
+	shuffleNames: function (array) {
+
+		// Durstenfeld shuffle - courtesy of Stackoverflow
+		for(let i = array.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[array[i], array[j]] = [array[j], array[i]];
+		}
+	}
+};
+
+
 
 let creatureNameFactory = (function (creatureType) {
 
-	const allWitchNames = ['Nelly', 'Esmerelda', 'Germintrude', 'Agnetha', 'Britney', 
+	let issuedName = '';
+
+	return function (creatureType) {
+
+		switch(creatureType){
+			case('Witch'): 
+				issuedName = witchNames.getName();
+			break;
+			case('Dragon'):
+				issuedName = dragonNames.getName();
+			break;
+			case('Snake'): 
+				issuedName = snakeNames.getName();
+			break;
+			case('Troll'):
+				issuedName = trollNames.getName();
+			break;
+			default:
+				issuedName = 'Creature type not recognised';
+		}
+		return issuedName;
+	}
+})();
+
+
+let getRandomInt = (min, max) => {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+
+// Note: Arrow functions have not been used in functions that access
+// the global scope. Seems to be a convention after research.
+
+
+// Main code entry point
+
+
+const allWitchNames = ['Nelly', 'Esmerelda', 'Germintrude', 'Agnetha', 'Britney', 
 	'Ignelda', 'Grimleah', 'Wickanda', 'Stinkina', 'Gertie', 'Gertana',
 	'Grimmadella', 'Scumolina', 'Maggie', 'Runette', 'Doomella',
 	'Estrella', 'Ophelia', 'Grimette', 'Thornella', 'Prunella', 
@@ -202,7 +273,7 @@ let creatureNameFactory = (function (creatureType) {
 	'Cruddenia', 'Cruddella', 'Nell', 'Krona', 
 	'Munter', 'Mutrid', 'Mavis', 'Croak', 'Belchette' ];
 
-	const allDragonNames = ['Morgon', 'Kalgon', 'Albert', 'Malvor', 'Pednor', 
+const allDragonNames = ['Morgon', 'Kalgon', 'Albert', 'Malvor', 'Pednor', 
 	'Jecoda', 'Magdor', 'Mengon', 'Hartador', 'Movor', 'Crandon', 'Torfon', 
 	'Weslon', 'Mogorian', 'Nortova', 'Naramus', 'Regona', 'Ragar', 
 	'Bernie', 'Raynor', 'Cedradon', 'Fargon', 'Merrador', 'Toogon', 'Fogor',
@@ -212,7 +283,7 @@ let creatureNameFactory = (function (creatureType) {
 	'Roborn', 'Jankor', 'Albador', 'Jarramon', 'Crendor', 'Melathan', 
 	'Harmadorn', 'Carvor', 'Bannador', 'Markovan', 'Harfon']; 
 
-	const allSnakeNames = ['Sidney','Fang','Sircon','Snide','Gripper',
+const allSnakeNames = ['Sidney','Fang','Sircon','Snide','Gripper',
 	'Fengtor', 'Slither', 'Vic', 'Jaws', 'Ernie', 'Choker', 'Benkor', 
 	'Squeeza', 'Simak', 'Hisston', 'Fangor', 'Venoma', 'Mengor', 
 	'Slim', 'Rakmor', 'Samson', 'Sodus', 'Segnor', 'Jake', 
@@ -223,7 +294,7 @@ let creatureNameFactory = (function (creatureType) {
 	'Gopha', 'Keel', 'Lance', 'Mocca', 'Patch', 'Py', 'Sawyer',
 	'Pangon', 'Simson', 'King', 'Uri', 'Timba'];
 
-	const allTrollNames = ['Mungo', 'Snort', 'Bruiser', 'Wedgie Giver', 
+const allTrollNames = ['Mungo', 'Snort', 'Bruiser', 'Wedgie Giver', 
 	'Guff', 'Burp', 'Noggin Thumper', 'Knocker', 'Arnie', 'Herbert', 
 	'Doofus', 'Simpleton', 'Mugga', 'Oafen', 'McKnuckles', 'Schmuckwit', 
 	'Melvin', 'Gregan', 'Norbert', 'Crudbucket', 'Sloppa', 'Jedwick', 'Chugnut', 
@@ -233,75 +304,13 @@ let creatureNameFactory = (function (creatureType) {
 	'Chomper', 'Big Belly', 'Barney Four Chins', 'Wart', 'Hogar', 'Smasher', 
 	'Dumble', 'Nostril', 'Nugget'];
 
-	shuffleArray(allWitchNames); // ShuffleArray is in global scope
-	shuffleArray(allDragonNames);
-	shuffleArray(allSnakeNames);
-	shuffleArray(allTrollNames);
 
-	const witchMax = allWitchNames.length;
-	const dragonMax = allDragonNames.length;
-	const snakeMax = allSnakeNames.length;
-	const trollMax = allTrollNames.length;
-
-	let witchIndex = 0;
-	let dragonIndex = 0;
-	let snakeIndex = 0;
-	let trollIndex = 0;
-
-	let issuedName = '';
-
-	return function (creatureType) {
-
-		switch(creatureType){
-			case('Witch'): 
-				if(witchIndex === witchMax) witchIndex = 0;
-				issuedName = allWitchNames[witchIndex];
-				witchIndex++;
-			break;
-			case('Dragon'):
-				if(dragonIndex === dragonMax) dragonIndex = 0;
-				issuedName = allDragonNames[dragonIndex];
-				dragonIndex++;
-			break;
-			case('Snake'): 
-				if(snakeIndex === snakeMax) snakeIndex = 0;
-				issuedName = allSnakeNames[snakeIndex];
-				snakeIndex++;
-			break;
-			case('Troll'):
-				if(trollIndex === trollMax) trollIndex = 0;
-				issuedName = allTrollNames[trollIndex];
-				trollIndex++;
-			break;
-			default:
-				issuedName = 'Creature type not recognised';
-		}
-		return issuedName;
-	}
-})();
-
-let getRandomInt = (min, max) => {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-let objectLength = (obj) => {
-	let total = 0;
-	for(let prop in obj) {
-		if (obj.hasOwnProperty(prop)) {
-			total++;
-		}
-	}
-	return total;
-}
-
-// Note: Arrow functions have not been used in functions that access
-// the global scope.
+let witchNames = new CreatureNames(allWitchNames);
+let dragonNames = new CreatureNames(allDragonNames);
+let snakeNames = new CreatureNames(allSnakeNames);
+let trollNames = new CreatureNames(allTrollNames);
 
 
-
-// Main code entry point
 
 let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
 let rollButton = document.getElementById('btn-roll').addEventListener('click', rollDice);
@@ -327,12 +336,9 @@ for(let count=0; count<NUMBER_OF_CREATURES; count++){
 	randomCreatureNumber = getRandomInt(0, maxNumberOfCreaturesAvailable - 1);
 	randomCreatureType = availableCreatures[randomCreatureNumber];
 
-	// This allows names that are unique to the character type to be
-	// assigned. This could be easily amended if there is only 
-	// a single pool of names available:
 	creatureNameFound = creatureNameFactory(randomCreatureType);
 
-	creatureData[count] = new Creature(randomCreatureType, creatureNameFound);
+	creatureData[count] = new Creature(randomCreatureType, creatureNameFound );
 	creatureData[count].setupCreature();
 }
 
@@ -370,7 +376,6 @@ function createDynamicTable(cssIdName, tableHeadings, tableData){
 
 	// Table data	
 	let indivRowData = [];
-	let numofobjects = objectLength(tableData);
 	let body = document.createElement('tbody');
 
 	tableData.forEach(function(item, index) {
@@ -583,13 +588,4 @@ function deleteRow(rowIDNumber){
 	rowToDelete.style.backgroundColor="#8b1321";
 	setTimeout(function(){ rowToDelete.parentNode.removeChild(rowToDelete)}, 230);
 	creatureData[rowIDNumber].deleteCreatureFromGame();
-}
-
-
-// Durstenfeld shuffle - courtesy of Stackoverflow
-function shuffleArray(array) {
-	for(let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
 }
