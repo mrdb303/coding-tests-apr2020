@@ -30,8 +30,7 @@ const FORCED_DICE_TWO = 3;
 const MAGINIFIED_INC_DEC_ON = true;
 // Isn't as easy to notice that an entry is being changed
 // without this option. Although could be annoying if 
-// stepping through a lot of values. Therefore option
-// is given for disabling it.
+// stepping through a lot of values.
 
 
 
@@ -129,9 +128,9 @@ class Troll extends Creature{
 }
 
 
-// This class demonstrates level 4 - Storing the powers 
-// Note that the web page removes the output of the power
-// types from the screen when dice is re-rolled, but the
+// This class stores the special powers. 
+// The web page removes the output of the power
+// types from the screen when dice are re-rolled, but the
 // data is still retained.
 class Powers {
 
@@ -166,19 +165,13 @@ class Powers {
 
 // This class is for generating creature names that are linked to the
 // creature type.
-// After consideration, I was of the opinion that names should be
-// suited to creature types (i.e. Trolls with names indicating
-// little intelligence, witches with female sounding names etc).
 // 
 // This tracks which creature names have already been issued to avoid 
-// the name being issued again.
-// Should an extreme number of creatures be generated that exceeds
-// the number of names available, the names will wrap around and start
-// again. Also randomises name order for each creature type on refresh.
+// the name being issued again. Also randomises name order for each 
+// creature type on refresh.
 // 
 // The name issuing functionality has been decoupled from the creature
-// creation classes on purpose, to allow for import of name data 
-// from a JSON file and allow the flexibility to use just one master
+// creation classes on purpose, to allow the flexibility to use one master
 // list of names for all of the creature types, if this is what the 
 // next stages of the challenge requires.
 
@@ -193,7 +186,6 @@ class CreatureNames {
 	this.issuedName = '';
 	this.shuffleNames(this.availableNames);
 	}
-
 
 	getName() {
 
@@ -259,7 +251,6 @@ let getRandomInt = (min, max) => {
 
 
 
-
 let allDragonNames = [];
 let allWitchNames = [];
 let allTrollNames = [];
@@ -274,7 +265,6 @@ let importDataAndRun = function(callback) {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			let response = JSON.parse(xhttp.responseText);
-			//var creatures = response.creatures;
 		
 			allWitchNames = response.Witch;
 			allDragonNames = response.Dragon;
@@ -375,7 +365,6 @@ function createDynamicTable(cssIdName, tableHeadings, tableData){
 	});
 
 	table.appendChild(head);
-
 
 	// Table data:
 	let indivRowData = [];
@@ -496,13 +485,8 @@ function rollDice(e){
 		powers.setPowers(dice1);
 	}
 
-	// Alert box or modal for dice throw results seemed clunky
-	// so was disabled.
-	//alert('Thrown ' + dice1 + " " + dice2 + message);
-
 	changeDice(dice1, dice2, doubleDice);
 }
-
 
 
 // Called from rollDice() - Draws dice and displays 'Special Power(s)'
@@ -550,9 +534,7 @@ function OutputPowers(){
 
 
 // This section is for performing the actions when any of
-// the three action buttons are clicked. Functionality will be 
-// increased at some point in future, as there will need to
-// be interactions with the creature objects to assign powers. 
+// the three action buttons are clicked.
 
 function increaseHealth(rowIDNumber){
 	creatureData[rowIDNumber].incrementHealth(rowIDNumber);
@@ -564,7 +546,7 @@ function decreaseHealth(rowIDNumber){
 	creatureData[rowIDNumber].decrementHealth(rowIDNumber);
 	let newHealth = creatureData[rowIDNumber].getHealthValue();
 	changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, 90, 3);
-	// Check if zero, if so, fire off alert and run deleteRow
+	// Check if zero
 }
 
 function changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, ms, colNum){
@@ -578,9 +560,8 @@ function changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, ms, colN
 }
 
 // A UI issue was identified where it could be tricky to see what was
-// being deleted, so I added a slight pause to the deletion process
-// and pre-highlighted the row in red before removal. Should just
-// be long enough to read the creature name.
+// being deleted, so a slight pause was added to the deletion process.
+// Pre-highlighted the row in red before removal. 
 
 function deleteRow(rowIDNumber){
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
