@@ -177,7 +177,7 @@ class Powers {
 // again. Also randomises name order for each creature type on refresh.
 // 
 // The name issuing functionality has been decoupled from the creature
-// creation classes on purpose, to allow for future import of name data 
+// creation classes on purpose, to allow for import of name data 
 // from a JSON file and allow the flexibility to use just one master
 // list of names for all of the creature types, if this is what the 
 // next stages of the challenge requires.
@@ -258,61 +258,42 @@ let getRandomInt = (min, max) => {
 // the global scope. Seems to be a convention after research.
 
 
-// Main code entry point
 
 
-const allWitchNames = ['Nelly', 'Esmerelda', 'Germintrude', 'Agnetha', 'Britney', 
-	'Ignelda', 'Grimleah', 'Wickanda', 'Stinkina', 'Gertie', 'Gertana',
-	'Grimmadella', 'Scumolina', 'Maggie', 'Runette', 'Doomella',
-	'Estrella', 'Ophelia', 'Grimette', 'Thornella', 'Prunella', 
-	'Hagardina', 'Cruella', 'Putrella', 'Grotta', 'Grottee', 
-	'Hagardola', 'Slimella', 'Agnetella', 'Gertrude', 'Ugg',
-	'Gruffella', 'Greasola', 'Sweatina', 'Esmerelda', 'Mungola', 
-	'Martha', 'Mersha', 'Putrina', 'Punga', 'Dungella', 
-	'Cruddenia', 'Cruddella', 'Nell', 'Krona', 
-	'Munter', 'Mutrid', 'Mavis', 'Croak', 'Belchette'];
+let allDragonNames = [];
+let allWitchNames = [];
+let allTrollNames = [];
+let allSnakeNames = [];
 
-const allDragonNames = ['Morgon', 'Kalgon', 'Albert', 'Malvor', 'Pednor', 
-	'Jecoda', 'Magdor', 'Mengon', 'Hartador', 'Movor', 'Crandon', 'Torfon', 
-	'Weslon', 'Mogorian', 'Nortova', 'Naramus', 'Regona', 'Ragar', 
-	'Bernie', 'Raynor', 'Cedradon', 'Fargon', 'Merrador', 'Toogon', 'Fogor',
-	'Uvavus', 'Camador', 'Aberlith', 'Lassandor', 'Byzan', 'Makadon', 
-	'Jirrador', 'Jovor', 'Medor', 'Landoran', 'Bogon', 'Harkor', 'Magaron', 
-	'Pendogor', 'Fandorn', 'Mobor', 'Merravon', 'Fentonor', 'Jaravon', 
-	'Roborn', 'Jankor', 'Albador', 'Jarramon', 'Crendor', 'Melathan', 
-	'Harmadorn', 'Carvor', 'Bannador', 'Markovan', 'Harfon']; 
+let creatures;
 
-const allSnakeNames = ['Sidney','Fang','Sircon','Snide','Gripper',
-	'Fengtor', 'Slither', 'Vic', 'Jaws', 'Ernie', 'Choker', 'Benkor', 
-	'Squeeza', 'Simak', 'Hisston', 'Fangor', 'Venoma', 'Mengor', 
-	'Slim', 'Rakmor', 'Samson', 'Sodus', 'Segnor', 'Jake', 
-	'Venomode', 'Sandie', 'Seether', 'Finchy', 'Gove', 'Striker', 
-	'Pouncer', 'Snart', 'Boa', 'Vipette', 'Scalar', 'Adderon', 
-	'Wringer', 'Sandar', 'Anna', 'Vipor', 'Asper', 'Riddick', 
-	'Cascar', 'Kobey', 'Casparian', 'Goldar', 'Harley', 'Mottle', 
-	'Gopha', 'Keel', 'Lance', 'Mocca', 'Patch', 'Py', 'Sawyer',
-	'Pangon', 'Simson', 'King', 'Uri', 'Timba'];
+let importDataAndRun = function(callback) {
 
-const allTrollNames = ['Mungo', 'Snort', 'Bruiser', 'Wedgie Giver', 
-	'Guff', 'Burp', 'Noggin Thumper', 'Knocker', 'Arnie', 'Herbert', 
-	'Doofus', 'Simpleton', 'Mugga', 'Oafen', 'McKnuckles', 'Schmuckwit', 
-	'Melvin', 'Gregan', 'Norbert', 'Crudbucket', 'Sloppa', 'Jedwick', 'Chugnut', 
-	'Noggin Squeezer', 'Burton', 'Crusher', 'Ignoramus', 'Jed', 'Hobon', 
-	'Bunce', 'Mung', 'Munge', 'Stench', 'Mudge', 'Lurch', 'Cruncher', 
-	'Jenks', 'Dumbwad', 'Biffa', 'Boffa', 'Gruff', 'Lurk', 'Pug', 'Six Fingers', 
-	'Chomper', 'Big Belly', 'Barney Four Chins', 'Wart', 'Hogar', 'Smasher', 
-	'Dumble', 'Nostril', 'Nugget'];
+	let xhttp = new XMLHttpRequest();
+
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			let response = JSON.parse(xhttp.responseText);
+			//var creatures = response.creatures;
+		
+			allWitchNames = response.Witch;
+			allDragonNames = response.Dragon;
+			allSnakeNames = response.Snake;
+			allTrollNames = response.Troll;
+			callback();
+		}	
+	};
+
+	xhttp.open("GET", "data/creatures.json", true);
+	xhttp.send();
+}
 
 
-let witchNames = new CreatureNames(allWitchNames);
-let dragonNames = new CreatureNames(allDragonNames);
-let snakeNames = new CreatureNames(allSnakeNames);
-let trollNames = new CreatureNames(allTrollNames);
-
-
-let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
-let rollButton = document.getElementById('btn-roll').addEventListener('click', rollDice);
-
+let witchNames;
+let dragonNames;
+let snakeNames;
+let trollNames;
+let creatureData = [];
 
 // If number of creature types are added to, add the creature type to the
 // following array - also add the type to the creatureNameFactory and main
@@ -321,44 +302,56 @@ let availableCreatures = ['Witch','Dragon','Snake','Troll'];
 
 let maxNumberOfCreaturesAvailable = availableCreatures.length;
 let randomCreatureType;
-let creatureData = [];
+
 let randomCreatureNumber;
 let creatureNameFound = '';
+let powers;
+let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Action");
 
 
+function mainEntryPoint() {
 
-// Main loop for creation of creatures and creature names.
+	witchNames = new CreatureNames(allWitchNames);
+	dragonNames = new CreatureNames(allDragonNames);
+	snakeNames = new CreatureNames(allSnakeNames);
+	trollNames = new CreatureNames(allTrollNames);
 
-for(let count=0; count<NUMBER_OF_CREATURES; count++){
+	powers = new Powers();
 
-	randomCreatureNumber = getRandomInt(0, maxNumberOfCreaturesAvailable - 1);
-	randomCreatureType = availableCreatures[randomCreatureNumber];
+	// Main loop for creation of creatures and creature names.
 
-	creatureNameFound = creatureNameFactory(randomCreatureType);
+	for(let count=0; count<NUMBER_OF_CREATURES; count++){
 
-	switch(randomCreatureType) {
-		case("Witch"):
-			creatureData[count]= new Witch(creatureNameFound);
-		break;
-		case("Dragon"):
-			creatureData[count]= new Dragon(creatureNameFound);
-		break;
-		case("Snake"):
-			creatureData[count]= new Snake(creatureNameFound);
-		break;
-		case("Troll"):
-			creatureData[count]= new Troll(creatureNameFound);
-		break;
+		randomCreatureNumber = getRandomInt(0, maxNumberOfCreaturesAvailable - 1);
+		randomCreatureType = availableCreatures[randomCreatureNumber];
+
+		creatureNameFound = creatureNameFactory(randomCreatureType);
+
+		switch(randomCreatureType) {
+			case("Witch"):
+				creatureData[count]= new Witch(creatureNameFound);
+			break;
+			case("Dragon"):
+				creatureData[count]= new Dragon(creatureNameFound);
+			break;
+			case("Snake"):
+				creatureData[count]= new Snake(creatureNameFound);
+			break;
+			case("Troll"):
+				creatureData[count]= new Troll(creatureNameFound);
+			break;
+		}
 	}
 
+	createDynamicTable('#table-box', tableHeadings, creatureData);
 }
 
+let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
+let rollButton = document.getElementById('btn-roll').addEventListener('click', rollDice);
 
-let powers = new Powers();
 
-let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Action");
-createDynamicTable('#table-box', tableHeadings, creatureData);
 
+importDataAndRun(mainEntryPoint);
 
 
 
@@ -505,7 +498,6 @@ function rollDice(e){
 
 	// Alert box or modal for dice throw results seemed clunky
 	// so was disabled.
-
 	//alert('Thrown ' + dice1 + " " + dice2 + message);
 
 	changeDice(dice1, dice2, doubleDice);
