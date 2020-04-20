@@ -19,8 +19,8 @@ const NUMBER_OF_CREATURES = 100;
 // override the values for testing: 
 
 const FORCE_DICE_MODE_FOR_TESTING = false;
-const FORCED_DICE_ONE = 3;
-const FORCED_DICE_TWO = 3;
+const FORCED_DICE_ONE = 6;
+const FORCED_DICE_TWO = 6;
 
 // *** TESTING VARIABLES END HERE ***
 
@@ -301,6 +301,8 @@ let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "A
 
 function mainEntryPoint() {
 
+	// This is the callback once data is fetched
+
 	witchNames = new CreatureNames(allWitchNames);
 	dragonNames = new CreatureNames(allDragonNames);
 	snakeNames = new CreatureNames(allSnakeNames);
@@ -473,7 +475,7 @@ function rollDice(e){
 	let dice1 = getRandomInt(1,6);
 	let dice2 = getRandomInt(1,6);
 
-	if(FORCE_DICE_MODE_FOR_TESTING === true){
+	if(FORCE_DICE_MODE_FOR_TESTING){
 		dice1 = FORCED_DICE_ONE;
 		dice2 = FORCED_DICE_TWO;
 	}
@@ -508,7 +510,9 @@ function changeDice(dice1, dice2, doubleDice){
 		(dice1 === 1)? powerImageName = "spower.png" : powerImageName = "spowers.png";
 		specialBox.getElementsByTagName("img")[0].src = `images/${powerImageName}`;
 
-		powers.setPowers(dice1); // Only need to pass one value as it's a double value
+		powers.setPowers(dice1); 
+		// Only need to pass one value as it's a double value
+		
 		OutputPowers();
 
 	} else {
