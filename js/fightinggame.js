@@ -18,7 +18,7 @@ const NUMBER_OF_CREATURES = 100;
 // override the values for testing: 
 
 const FORCE_DICE_MODE_FOR_TESTING = false;
-const FORCED_DICE_TO_DOUBLE = 6; // 1 to 6
+const FORCED_DICE_TO_DOUBLE = 6;	// 1 to 6
 
 // *** TESTING VARIABLES END HERE ***
 
@@ -351,7 +351,7 @@ function mainEntryPoint() {
 }
 
 
-function createDynamicTable(cssIdName, tableHeadings, tableData){
+function createDynamicTable(cssIdName='#table-box', tableHeadings=[], tableData=[]){
 
 	let tablediv = document.querySelector(cssIdName);
 	document.querySelector(cssIdName).innerHTML = "";
@@ -411,7 +411,7 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 	return row;
 }
 
-function createTDElementText(textValue){
+function createTDElementText(textValue=''){
 	let cell = document.createElement('td');
 	cell.appendChild(document.createTextNode(textValue));
 	return cell;
@@ -564,22 +564,38 @@ function decreaseHealth(rowIDNumber){
 }
 
 function changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, ms, colNum){
+
+	const delayTime = 60;
+	const origFontSize = '0.938em';
+	const largeFontSize = '2em';
+
 	let rowSelected = document.getElementById("row" + rowIDNumber);
 	rowSelected.getElementsByTagName("td")[3].innerHTML = newHealth;
+	
 	if(MAGINIFIED_INC_DEC_ON){
-		rowSelected.getElementsByTagName("td")[3].style.fontSize = '2em';
-		setTimeout(() => {rowSelected.getElementsByTagName("td")[colNum].style.fontSize = '0.938em';}, ms);
-		setTimeout(() => {}, 60);
+		rowSelected.getElementsByTagName("td")[3].style.fontSize = largeFontSize;
+		setTimeout(() => {
+			rowSelected.getElementsByTagName("td")[colNum].style.fontSize = origFontSize;
+		}, ms);
+		setTimeout(() => {}, delayTime);
 	}
 }
 
 // A UI issue was identified where it could be tricky to see what was
 // being deleted, so a slight pause was added to the deletion process.
-// Pre-highlighted the row in red before removal. 
+// Pre-coloured the row before removal. 
 
 function deleteRow(rowIDNumber){
+
+	const deleteRowTime = 230;
+	const colourOfDeletingRow = "#8b1321";
+
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
-	rowToDelete.style.backgroundColor="#8b1321";
-	setTimeout(function(){ rowToDelete.parentNode.removeChild(rowToDelete)}, 230);
+	rowToDelete.style.backgroundColor=colourOfDeletingRow;
+
+	setTimeout(function(){ 
+		rowToDelete.parentNode.removeChild(rowToDelete)
+	}, deleteRowTime);
+
 	creatureData[rowIDNumber].deleteCreatureFromGame();
 }
