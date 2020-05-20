@@ -836,7 +836,7 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 	if(sittingOut !== false){
 		if(creatureData[sittingOut].getSpecialPower() !== ''){
 			creatureData[sittingOut].setSpecialPowerVariables();
-			creatureData[sittingOut].processPowers();
+			//creatureData[sittingOut].processPowers();
 		}
 	}
 }
