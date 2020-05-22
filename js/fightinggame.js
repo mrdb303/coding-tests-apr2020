@@ -9,7 +9,7 @@ const NUMBER_OF_CREATURES = 100;
 
 // Force 'special powers' for testing: 
 const FORCE_DICE_MODE_FOR_TESTING = false;
-const FORCED_DICE_TO_DOUBLE = 6;	// 1 to 6
+const FORCED_DICE_TO_DOUBLE = 1;	// 1 to 6
 
 // *** TESTING VARIABLES END HERE ***
 
@@ -665,6 +665,8 @@ function rollDiceOrFight(e){
 		casulaties.innerHTML = '';
 		casulaties.style.display = 'none';
 
+
+
 		powers.clearPowers();
 		currentDiceRollTotal = 0;
 
@@ -713,10 +715,26 @@ function rollDiceOrFight(e){
 		performFightActions();
 		casulaties.style.display = 'block';
 		casulaties.appendChild(getBeatenCreaturesLastRound());
+
+		//blankDiceBox();
 		if(gameOver === false)clearOutputGameData();
 	}
 
 	flipActionMode();
+}
+
+function blankDiceBox(){
+	let blankImgPath = `images/blank.png`;
+	
+	let diceBox = document.getElementById("dice-box");
+	diceBox.getElementsByTagName("img")[0].src = blankImgPath;
+	diceBox.getElementsByTagName("img")[1].src = blankImgPath;
+	
+	let powerBox = document.getElementById("powers-box");
+	powerBox.innerHTML = '';
+	
+	let special = document.getElementById("special");
+	special.getElementsByTagName("img")[0].src = blankImgPath;
 }
 
 function resetFightingDataAndFindFighters(){
@@ -946,6 +964,7 @@ function displayCreatureCountEndIfWinner(){
 			let winMessage = winningMessage();
 			message = `${creatureData[creatureIndex].getName()} the ${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
 			gameWorkings.appendChild(wrapInPTags(message));
+			displayTrophy();
 			waitForGameReset = true;
 		}
 		// Prepare for user to reset
@@ -961,9 +980,19 @@ function removeActionButton(){
 		alert("There is a winner!");
 		let powerBox = document.getElementById("powers-box");
 		powerBox.style.display ='none';
-		let diceBox = document.getElementById('dice-box');
-		diceBox.style.display ='none';
+		displayTrophy();
 	}
+}
+
+function displayTrophy(){
+	let diceBox = document.getElementById("dice-box");
+	diceBox.getElementsByTagName("img")[0].src = 'images/trophy.png';
+	diceBox.getElementsByTagName("img")[1].src = 'images/blank.png';
+	diceBox.style.display ='block';
+	let powerBox = document.getElementById("powers-box");
+	powerBox.style.display ='none';
+	let special = document.getElementById("special");
+	special.getElementsByTagName("img")[0].src = 'images/firstplace.png';
 }
 
 function totalOfCreaturesAlive(){
@@ -1238,11 +1267,12 @@ function getBeatenCreaturesLastRound(){
 	let message = '';
 	let arrAsString='';
 	let count = eliminated.length;
+	let eliminatedSrt = eliminated.sort();
 	if(count > 0) {		
 		if(count === 1){
-			message = wrapInPTags(`${count} creature was eliminated through battle in the last round: <br/><br/>${eliminated.toString()}`);
+			message = wrapInPTags(`${count} creature was eliminated through battle in the last round: <br/><br/>${eliminatedSrt.toString()}`);
 		} else {
-			arrAsString = eliminated.join(', ');
+			arrAsString = eliminatedSrt.join(', ');
 			message = wrapInPTags(`${count} creatures were eliminated through battle in the last round: <br/><br/>${arrAsString}`);
 		}
 	} else {
