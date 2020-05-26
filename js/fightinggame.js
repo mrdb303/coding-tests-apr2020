@@ -1255,7 +1255,7 @@ function winningMessage(){
 	"took it to the next level", "gave out a pasting", "showed them how it should be done",
 	"taught them all a lesson", "took no prisoners", "silenced the critics", "wasn't messing around",
 	"laid it all on the line in this epic battle","beat them all like a naughty schoolchild",
-	"put on a good show","beat them all by fair means and foul", "dealt with allcomers",
+	"put on a good show","beat them all by fair means and foul",
 	"had no time for amateurs","showed them that form is temporary but class is permanent",
 	"was not impressed with the skill level of the opposition","gave them all a masterclass in fighting",
 	"dedicated the win to Auntie Norah", "showed no mercy", "showed true courage",
