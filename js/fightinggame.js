@@ -15,6 +15,7 @@ const FORCED_DICE_TO_DOUBLE = 1;	// 1 to 6
 
 
 const SHOW_GAME_MATCH_UPS_MODE = true;
+const PREVIEW_SPECIAL_POWER_RESULTS = true;
 const MAGINIFIED_INC_DEC_ON = true;
 
 class Creature {
@@ -180,7 +181,6 @@ class Creature {
 	setSpecialPowerVariables() {
 		if(this.specialPower !=='') {
 
-			//console.log("Processing a special power of : " + this.specialPower);
 			switch(this.specialPower){
 				case 'Decreases opponents health by 100':
 					this.decreaseOppHealthOf100 = true;
@@ -206,7 +206,7 @@ class Creature {
 	}
 
 	processPowers(){
-		// Only one of the powers can be processed
+		// Only one of the powers can be processed due to game logic
 		// Don't allow strength to hold a minus figure, zero is lowest
 		if(this.strength > 0) {
 			if(this.modStrengthMinus > 0) this.strength = this.strength - this.modStrengthMinus;
@@ -324,8 +324,6 @@ class Powers {
 // This tracks which creature names have already been issued to avoid 
 // the name being issued again. Also randomises name order for each 
 // creature type on refresh.
-// The name issuing functionality has been decoupled from the creature
-// creation classes to allow the flexibility on how name banks are issued.
 
 class CreatureNames {
 	// One single instance per creature type.
@@ -352,7 +350,6 @@ class CreatureNames {
 	}
 
 	shuffleNames(array) {
-
 		// Durstenfeld shuffle - courtesy of Stackoverflow
 		for(let i = array.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
@@ -416,6 +413,7 @@ let actionButtonRemoved = false;
 
 
 let importDataAndRun = (callback) => {
+	// Pull creature name data from JSON file
 
 	let xhttp = new XMLHttpRequest();
 
@@ -490,7 +488,6 @@ function mainEntryPoint() {
 
 		randomCreatureNumber = getRandomInt(0, maxNumberOfCreaturesAvailable - 1);
 		randomCreatureType = availableCreatures[randomCreatureNumber];
-
 		creatureNameFound = creatureNameFactory(randomCreatureType);
 
 		switch(randomCreatureType) {
@@ -566,12 +563,12 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 		row.appendChild(createTDElementText(indivRowData['health']));
 		row.appendChild(createTDElementText(indivRowData['specialPower']));
 		row.appendChild(createTDElementText(indivRowData['opponent']));
-		row.appendChild(createTDWithInputButtons(indivRowData, index));
+		row.appendChild(createTDWithInputButtons(index));
 
 		return row;
 	}
 
-	// Error found
+	// If no data is found, return an empty table row
 	let row = document.createElement('tr');
 	for(let count=0;count<6; count++){
 		row.appendChild(createTDElementText('')); 
@@ -594,10 +591,10 @@ function createTDElementImage(imgPath=ERR_IMG, title=''){
 	return cell;
 }
 
-function createTDWithInputButtons(indivRowData, objcount) {
+function createTDWithInputButtons(objcount) {
 	let tdCell = document.createElement('td');
 
-	// Buttons for creature actions
+	// Buttons in last table column for creature actions
 	tdCell.appendChild(createTDElementInputButtons('images/delete.png', 'btn', 'del', objcount));
 	tdCell.appendChild(createTDElementInputButtons('images/heart_inc.png', 'btn', 'inc', objcount));
 	tdCell.appendChild(createTDElementInputButtons('images/heart_dec.png', 'btn', 'dec', objcount));
@@ -624,6 +621,11 @@ function createTDElementInputButtons(imgPath=ERR_IMG, inputClass, inputName, idN
 // Listener events set up in this section
 
 function processActionButtonClick(e){
+	// If only one creature remains, we don't want to give the user the
+	// option to delete the creature, as it will make a nonsense of
+	// the winning text, images and last creature eliminated message shown
+	// on the page. Therefore we must ensure that 'gameOver' is not true 
+	// before allowing the action buttons to process input. 
 
 	if(gameOver === false) {
 		let idstr = e.currentTarget.id; // choose the parent id
@@ -644,6 +646,8 @@ function processActionButtonClick(e){
 				alert('Command not recognised');
 		}
 	}
+	// Deleting the second last creature can end the game, so we need to
+	// check if the end of the game occurs here.
 	displayCreatureCountEndIfWinner();
 }
 
@@ -652,20 +656,17 @@ function resetPage(e){
 }
 
 
-// Main game logic and loop once creature table has been pushed to
-// screen for the first time.
 
 function rollDiceOrFight(e){
+	// Main game logic and loop once creature table has been pushed to
+	// screen for the first time.
 	let casulaties = document.getElementById('casualties');
 	
 	if(mode === 'Roll the Dice'){ 
 
 		eliminated = [];
-		
 		casulaties.innerHTML = '';
 		casulaties.style.display = 'none';
-
-
 
 		powers.clearPowers();
 		currentDiceRollTotal = 0;
@@ -708,7 +709,7 @@ function rollDiceOrFight(e){
 		removeTheDead();
 
 		if(SHOW_GAME_MATCH_UPS_MODE === true && totalOfCreaturesAlive() >1) {
-			outputGameData(creaturesGoFirst, creaturesGoSecond, true);
+			outputGameData(creaturesGoFirst, creaturesGoSecond, PREVIEW_SPECIAL_POWER_RESULTS);
 		} 
 		
 	} else  {
@@ -716,7 +717,6 @@ function rollDiceOrFight(e){
 		casulaties.style.display = 'block';
 		casulaties.appendChild(getBeatenCreaturesLastRound());
 
-		//blankDiceBox();
 		if(gameOver === false)clearOutputGameData();
 	}
 
@@ -754,23 +754,22 @@ function resetFightingDataAndFindFighters(){
 
 
 function calculateOpponents(){
-	let opponentName;
-	let opponentIndexNum;
 	creaturesGoFirst = fightersInGame.slice(0,remainCreatures / 2);
 	creaturesGoSecond = fightersInGame.slice((remainCreatures / 2), remainCreatures);
 
 	for(let count=0;count<creaturesGoFirst.length;count++){
-		opponentName = creatureData[creaturesGoSecond[count]].getName();
-		opponentIndexNum = creaturesGoSecond[count];
-		creatureData[creaturesGoFirst[count]].setOpponent(opponentIndexNum, opponentName);
-		opponentName = creatureData[creaturesGoFirst[count]].getName();
-		opponentIndexNum = creaturesGoFirst[count];
-		creatureData[creaturesGoSecond[count]].setOpponent(opponentIndexNum, opponentName);
+		writeCreaturesOpponent(creaturesGoFirst[count], creaturesGoSecond[count]);
+		writeCreaturesOpponent(creaturesGoSecond[count], creaturesGoFirst[count]);
 	}
-
 	displayPowersAndOpponentsOnTable(creaturesGoFirst, creaturesGoSecond, sittingOut);
-
 }
+
+
+function writeCreaturesOpponent(creatureID, opponentID){
+	let opponentName = creatureData[opponentID].getName();
+	creatureData[creatureID].setOpponent(opponentID, opponentName);
+}
+
 
 function assignPowers(){
 	let specialPowersPriorityList = shuffleArray(fightersInGame);
@@ -781,8 +780,10 @@ function assignPowers(){
 	if(powersToFetch > 0){
 		let powersIssued = powers.getPowers();
 
-		// Reduces num of powers to issue if there are more powers than
-		// remaining players.
+		// Rarer powers are chosen by default if there are more powers than players.
+		// The only downside of this is where a game won't end in test mode
+		// if constant double sixes are thrown as 'Hide' option will 
+		// perpetually occur for last two creatures.
 		if(powersToFetch > fightersInGame.length) powersToFetch = fightersInGame.length;
 
 		for(let count = 0; count<powersToFetch;count++) {
@@ -797,14 +798,17 @@ function assignPowers(){
 }
 
 function removeExtraCreatureIffOddNumber(){
-	// This could include a creature assigned a special power
+	// Removes extra creature from current battle list. This could include a 
+	// creature assigned a special power.
 	sittingOut = false;
 	if(remainCreatures % 2 !== 0) sittingOut = fightersInGame.pop();
 }
 
 
 function processEndOfGoDamage(creaturesTurn = [], opposition = []){
-
+	// Applies the strength + dice roll penalty paid at end of battle, unless
+	// creature applies 'Hide' or creature has already died (can happen
+	// when special powers are processed before battle).
 	let subValue;
 
 	for(let count = 0; count<creaturesTurn.length; count++) {
@@ -841,19 +845,22 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 		creatureData[creaturesToProcess[count]].processPowers();
 
 		// both steal strength and can decrease health need to be performed
-		// outside of processPowers())
+		// outside of processPowers() as they may not affect the creature whose
+		// object we are working with.
 		stealStrengthIfApplicable(creaturesToProcess[count], opponents[count]);
 		
 		if(creatureData[opponents[count]].getHealthValue() !== 0 && creatureData[creaturesToProcess[count]].canDecreaseHealth() === true){
 			creatureData[opponents[count]].removeHealthValue(100);
 		}
-		// Hide/skip a go called is only relevant in actual battle- not
-		// while processing special powers
+		// Hide/skip a go called is only relevant in actual battle. The flag for
+		// the feature is set in setSpecialPowerVariables().
 	}
 
 	if(sittingOut !== false){
 		if(creatureData[sittingOut].getSpecialPower() !== ''){
 			creatureData[sittingOut].setSpecialPowerVariables();
+			// It is part of the brief that creature's powers are not
+			// processed if they are sitting out, so next line is disabled
 			//creatureData[sittingOut].processPowers();
 		}
 	}
@@ -900,33 +907,28 @@ function updateStrengthHealthAndPowersOnTable(creatureArray){
 
 function displayPowersAndOpponentsOnTable(goFirst = [], goSecond = [], sittingOut = false){
 
-	let rowSelected;
-	let opponentName;
-	let power;
-
 	for(let count=0;count<goFirst.length;count++){
-
-		power = creatureData[goFirst[count]].getSpecialPower();
-		opponentName = creatureData[goFirst[count]].getOpponent();
-		rowSelected = document.getElementById("row" + goFirst[count]);
-		rowSelected.getElementsByTagName("td")[4].innerHTML = power;
-		rowSelected.getElementsByTagName("td")[5].innerHTML = opponentName;
-		
-		power = creatureData[goSecond[count]].getSpecialPower();
-		opponentName = creatureData[goSecond[count]].getOpponent();
-		rowSelected = document.getElementById("row" + goSecond[count]);
-		rowSelected.getElementsByTagName("td")[4].innerHTML = power;
-		rowSelected.getElementsByTagName("td")[5].innerHTML = opponentName;
+		pushPowerAndOppToTableRow(goFirst[count], false);
+		pushPowerAndOppToTableRow(goSecond[count], false);
 	}
 
 	if(sittingOut !== false){
-		rowSelected = document.getElementById("row" + sittingOut);
-		power = creatureData[sittingOut].getSpecialPower();
-		rowSelected.getElementsByTagName("td")[4].innerHTML = power;
-		rowSelected.getElementsByTagName("td")[5].innerHTML = "Not in this round";
+		pushPowerAndOppToTableRow(sittingOut, true);
 	}
-
 }
+
+
+function pushPowerAndOppToTableRow(rowID, sitOut=false){
+	
+	let power = creatureData[rowID].getSpecialPower();
+	let	opponentName = creatureData[rowID].getOpponent();
+	let	rowSelected = document.getElementById("row" + rowID);
+	rowSelected.getElementsByTagName("td")[4].innerHTML = power;
+
+	if(sitOut === true) opponentName = "Not in this round";
+	rowSelected.getElementsByTagName("td")[5].innerHTML = opponentName;
+}
+
 
 function clearOutputGameData(){
 	if(SHOW_GAME_MATCH_UPS_MODE === true) {
@@ -967,16 +969,20 @@ function displayCreatureCountEndIfWinner(){
 			displayTrophy();
 			waitForGameReset = true;
 		}
-		// Prepare for user to reset
 	}
 }
 
 function removeActionButton(){
 	if(actionButtonRemoved  === false){
 		actionButtonRemoved  = true;
+
+		// Removes the action button so only 'reset' is selectable. 
 		let buttonElement = document.getElementById("btn-action");
 		buttonElement.remove();
-		gameOver = true;	// prevents delete creature button from working
+
+		gameOver = true;	// prevents delete creature, health+ and 
+		// health- buttons from working when only the winner remains
+
 		alert("There is a winner!");
 		let powerBox = document.getElementById("powers-box");
 		powerBox.style.display ='none';
@@ -1023,7 +1029,7 @@ function removeTheDead(){
 }
 
 // Called from rollDiceOrFight() - Draws dice and displays 'Special Power(s)'
-// image if required. Uses two 'Special Powers' versions, singular 
+// image if required. Uses two 'Special Powers' image versions, singular 
 // and plural.
 
 function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
@@ -1143,7 +1149,6 @@ function flipActionMode(){
 		mode = "Roll the Dice";
 	}
 	if(gameOver === false) actionButton = document.getElementById('btn-action').value = mode;
-
 }
 
 function outputGameData(goFirst, goSecond, showPowers = false){
@@ -1166,7 +1171,7 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 		gameWorkings.appendChild(fightContainer);
 
 		if(showPowers === true) {
-			effects	= previewPowerEffects(goFirst[count], false);
+			effects	= previewPowerEffects(goFirst[count]);
 			fightContainer.appendChild(wrapInPTags(effects));
 			gameWorkings.appendChild(fightContainer);
 		}
@@ -1185,7 +1190,7 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 		gameWorkings.appendChild(fightContainer);
 
 		if(showPowers === true){
-			effects	= previewPowerEffects(goSecond[count], false);
+			effects	= previewPowerEffects(goSecond[count]);
 			fightContainer.appendChild(wrapInPTags(effects));
 			gameWorkings.appendChild(fightContainer);
 		}
@@ -1255,7 +1260,7 @@ function winningMessage(){
 	"was not impressed with the skill level of the opposition","gave them all a masterclass in fighting",
 	"dedicated the win to Auntie Norah", "showed no mercy", "showed true courage",
 	"put the victory down to superior footwork and experience","vowed to return next year to defend the title",
-	"publically thanked the sponsors", "gave a victory dance", 
+	"publically thanked the sponsors", "gave a victory dance", "entertained the crowd and put on a good show",
 	"was happy with the win but critical of the performance"];
 
 	let randomInt = getRandomInt(0,(winningArray.length-1));
@@ -1281,7 +1286,7 @@ function getBeatenCreaturesLastRound(){
 	return message;
 }
 
-function previewPowerEffects(creature, showModData = false){
+function previewPowerEffects(creature){
 	let powers = '';
 	let modData = '';
 	let message = '';
@@ -1295,7 +1300,6 @@ function previewPowerEffects(creature, showModData = false){
 }
 
 function predictPointsLossFromBattle(creature, opponent) {
-
 	let message = 'If not already beaten, a normal fight will result in a loss of ';
 	message += creatureData[creature].getStrengthValue() + currentDiceRollTotal;
 	message += " from the opponents health.";
@@ -1308,7 +1312,6 @@ function predictPointsLossFromBattle(creature, opponent) {
 }
 
 function getWinner(){
-
 	let fightersInGame = creatureData.filter((creature) => {
 		return creature.isCreatureDeleted() === false});
 	
@@ -1316,7 +1319,7 @@ function getWinner(){
 	return fightersInGame[0];
 }
 
-function wrapInPTags(text, pClass = null){
+function wrapInPTags(text = '', pClass = null){
 	let pTagString = document.createElement('p');
 	if(pClass !== null) pTagString.className += pClass;
 	pTagString.innerHTML = text;
