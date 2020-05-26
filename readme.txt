@@ -59,29 +59,32 @@ If there are no doubles rolled, then the code will jump past the next stage dire
 
 Stage 2 - Process Power
 
-If there are doubles rolled, then the table will also show the powers generated for the respective creature.
+If there are doubles rolled, then the game will apply at random the powers issued. The table will also show the powers generated for the respective creature.
 Where the matchups are shown underneath the table, the powers will also be displayed there too.
 
-Pressing the 'Process Power' button will apply the powers to the creature table and amend the creature stats accordingly. Underneath the table you will see the actual power stats that have been applied. For example, a power could be 'Increases strength between 1 - 100'. In this circumstance the summary will show the actual strength value applied (i.e. 56).
+Pressing the 'Process Power' button will apply the powers to the creature table and amend the creature stats accordingly. Underneath the table you will see the actual power stats that have been applied. For example, a power could be 'Increases strength between 1 - 100'. In this circumstance the summary will show the actual strength value applied (i.e. 56 if that is the random value generated).
 
-Also shown is the calculated value of the health points that will be lost if the fight completes. Note that
-there are cases which will mean that the opponent will not lose additional health points, such as:
+Also shown is the calculated value of the health points that will be lost if the fight completes. Note that there are cases which will mean that the opponent will not lose additional health points, such as:
 
-- Creature skips a go
+- Creature skips a go through gaining the 'Hide/Skip a go' power.
 - Creature has been eliminated due to the result of special powers being applied
-- Creature being defeated before it gets an attack (i.e. if its health is zero when it is second in line to attack)
+- Creature being defeated before it gets an attack (i.e. if its health is at zero from the first strike of its opponent, when it is second in line to attack)
 
 
 Stage 3 - Fight
 
 The battle commences in the correct fighting order. The creature going first gets the first strike and health points are lost by the opponent. To calculate health points lost, add the creature's strength who is attacking to the sum of the dice. If the opponent is left with health points greater than zero, then the opponent will strike and cause the first fighter to lose health points. If a creature is reduced to zero health points, then it is eliminated.
 
-When the stage is over, the page will update and list the creatures that were eliminated in that round.
+When the stage is over, the page will update the main table and list the creatures that were eliminated in that round.
 
 If one creature remains, then the battle is over and the trophy and medal are displayed. At this stage you can press the reset button to restart the game.
 If more than one creature remains, then the game continues with the remaining creatures and goes back to stage one for the next fighting round. 
 
 
 Additional Information:
+
+A special power only lasts for one fighting round.
+
+If there are an odd number of creatures, then a creature will be picked at random to not participate in the round of fighting. If this creature has been granted a special power, then it will not be processed.
 
 The action buttons are still available for creature modification throughout the duration of the game(add health/remove health/delete creature). Once the winner is announced, then clicking the action buttons will have no effect. 
