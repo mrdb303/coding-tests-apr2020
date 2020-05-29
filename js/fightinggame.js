@@ -5,11 +5,11 @@
 
 
 // *** TESTING VARIABLES START HERE ***
-const NUMBER_OF_CREATURES = 100;
+const NUMBER_OF_CREATURES = 6;
 
 // Force 'special powers' for testing: 
 const FORCE_DICE_MODE_FOR_TESTING = false;
-const FORCED_DICE_TO_DOUBLE = 1;	// 1 to 6
+const FORCED_DICE_TO_DOUBLE = 3;	// 1 to 6
 
 // *** TESTING VARIABLES END HERE ***
 
@@ -100,13 +100,13 @@ class Creature {
 
 	steal50PercentOfCreatureStrength(){
 		let stolenStrength = Math.floor((this.strength / 2));
-		this.strength = this.strength - stolenStrength;
+		this.strength -= stolenStrength;
 		return stolenStrength;
 	}
 
 
 	removeHealthValue(healthValue){
-		if(this.health > 0) this.health = this.health - healthValue;
+		if(this.health > 0) this.health -= healthValue;
 		if(this.health < 0) this.health = 0;
 	}
 
@@ -209,7 +209,7 @@ class Creature {
 		// Only one of the powers can be processed due to game logic
 		// Don't allow strength to hold a minus figure, zero is lowest
 		if(this.strength > 0) {
-			if(this.modStrengthMinus > 0) this.strength = this.strength - this.modStrengthMinus;
+			if(this.modStrengthMinus > 0) this.strength -= this.modStrengthMinus;
 		}		
 		if(this.modStrengthPlus > 0) this.strength += this.modStrengthPlus;
 		if(this.strength < 0) this.strength = 0;
@@ -469,7 +469,6 @@ importDataAndRun(mainEntryPoint);
 // Functions beyond this point.
 
 function mainEntryPoint() {
-
 	// This is the callback once data is fetched. We need to ensure the
 	// name data has been read in before we can manipulate it.
 
@@ -482,7 +481,7 @@ function mainEntryPoint() {
 
 	powers = new Powers();
 
-	// Main loop for creation of creatures and creature names.
+	// Loop for creation of creatures and creature names.
 
 	for(let count=0; count<NUMBER_OF_CREATURES; count++){
 
@@ -568,7 +567,7 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 		return row;
 	}
 
-	// If no data is found, return an empty table row
+	// If no data is found, return an empty table row-a test for errors
 	let row = document.createElement('tr');
 	for(let count=0;count<6; count++){
 		row.appendChild(createTDElementText('')); 
@@ -592,9 +591,8 @@ function createTDElementImage(imgPath=ERR_IMG, title=''){
 }
 
 function createTDWithInputButtons(objcount) {
-	let tdCell = document.createElement('td');
-
 	// Buttons in last table column for creature actions
+	let tdCell = document.createElement('td');
 	tdCell.appendChild(createTDElementInputButtons('images/delete.png', 'btn', 'del', objcount));
 	tdCell.appendChild(createTDElementInputButtons('images/heart_inc.png', 'btn', 'inc', objcount));
 	tdCell.appendChild(createTDElementInputButtons('images/heart_dec.png', 'btn', 'dec', objcount));
@@ -654,7 +652,6 @@ function processActionButtonClick(e){
 function resetPage(e){
 	location.reload();
 }
-
 
 
 function rollDiceOrFight(e){
@@ -845,8 +842,8 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 		creatureData[creaturesToProcess[count]].processPowers();
 
 		// both steal strength and can decrease health need to be performed
-		// outside of processPowers() as they may not affect the creature whose
-		// object we are working with.
+		// outside of processPowers() as they will affect the creature outside
+		// of the object we are working with.
 		stealStrengthIfApplicable(creaturesToProcess[count], opponents[count]);
 		
 		if(creatureData[opponents[count]].getHealthValue() !== 0 && creatureData[creaturesToProcess[count]].canDecreaseHealth() === true){
@@ -900,7 +897,7 @@ function updateStrengthHealthAndPowersOnTable(creatureArray){
 	if(sittingOut !== false){
 		rowSelected = document.getElementById("row" + sittingOut);
 		rowSelected.getElementsByTagName("td")[4].innerHTML = "";
-		rowSelected.getElementsByTagName("td")[5].innerHTML = "";
+		rowSelected.getElementsByTagName("td")[5].innerHTML = "Not in the round";
 	}
 }
 
@@ -945,34 +942,32 @@ function displayCreatureCountEndIfWinner(){
 	if(aliveCreaturesCount > 1) message = "<h3>"+ aliveCreaturesCount + " worthy adversaries remain in battle</h3>";
 	if(aliveCreaturesCount === 1) {
 		message = "<h3>Only the true victor remains</h3>";
-		removeActionButton();
+		removeActionButtons();
+		clearOutputGameData();
+		
+		if(waitForGameReset===false) displayWinnerMessage();
 	}
 
 	let countBox = document.getElementById('count');
 	countBox.innerHTML = message;
-
-	if(aliveCreaturesCount === 1){ 
-		clearOutputGameData();
-		let gameWorkings = document.getElementById("win");
-		
-		if(waitForGameReset===false){
-			gameWorkings.innerHTML = '';
-			gameWorkings.style.display ='block';
-
-			// Game won output
-			message = 'W I N N E R !';
-			gameWorkings.appendChild(wrapInPTags(message, 'head'));
-			let creatureIndex = getWinner();
-			let winMessage = winningMessage();
-			message = `${creatureData[creatureIndex].getName()} the ${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
-			gameWorkings.appendChild(wrapInPTags(message));
-			displayTrophy();
-			waitForGameReset = true;
-		}
-	}
 }
 
-function removeActionButton(){
+function displayWinnerMessage(){
+	let gameWorkings = document.getElementById("win");
+	gameWorkings.innerHTML = '';
+	gameWorkings.style.display ='block';
+
+	let message = 'W I N N E R !';
+	gameWorkings.appendChild(wrapInPTags(message, 'head'));
+	let creatureIndex = getWinner();
+	let winMessage = winningMessage();
+	message = `${creatureData[creatureIndex].getName()} the ${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
+	gameWorkings.appendChild(wrapInPTags(message));
+	displayTrophy();
+	waitForGameReset = true;
+}
+
+function removeActionButtons(){
 	if(actionButtonRemoved  === false){
 		actionButtonRemoved  = true;
 
