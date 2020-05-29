@@ -5,7 +5,7 @@
 
 
 // *** TESTING VARIABLES START HERE ***
-const NUMBER_OF_CREATURES = 6;
+const NUMBER_OF_CREATURES = 100;
 
 // Force 'special powers' for testing: 
 const FORCE_DICE_MODE_FOR_TESTING = false;
