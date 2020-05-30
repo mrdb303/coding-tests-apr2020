@@ -279,6 +279,7 @@ background-color: rgba(0,0,0,0.4);
 .modal-content {
 background-color: #3c654a;
 margin: 15% auto;
+text-align: center;
 padding: 20px;
 border-radius: 20px;
 width: 80%;
