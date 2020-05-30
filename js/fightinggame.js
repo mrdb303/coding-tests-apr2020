@@ -459,6 +459,8 @@ const ERR_IMG = 'images/error.png';
 
 let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
 let actionButton = document.getElementById('btn-action').addEventListener('click', rollDiceOrFight);
+let modal = document.getElementById("modal-box");
+let span = document.getElementsByClassName("close")[0];
 
 
 
@@ -978,7 +980,8 @@ function removeActionButtons(){
 		gameOver = true;	// prevents delete creature, health+ and 
 		// health- buttons from working when only the winner remains
 
-		alert("There is a winner!");
+		/*alert("There is a winner!");*/
+		modal.style.display = "block";
 		let powerBox = document.getElementById("powers-box");
 		powerBox.style.display ='none';
 		displayTrophy();
@@ -1320,4 +1323,16 @@ function wrapInPTags(text = '', pClass = null){
 	pTagString.innerHTML = text;
 
 	return pTagString;
+}
+
+// When user clicks on <span> (x), close the modal
+span.onclick = function() {
+	modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
 }
