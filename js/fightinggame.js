@@ -941,7 +941,7 @@ function displayCreatureCountEndIfWinner(){
 	let message = '';
 	let aliveCreaturesCount = totalOfCreaturesAlive();
 
-	if(aliveCreaturesCount > 1) message = "<h3>"+ aliveCreaturesCount + " worthy adversaries remain in battle</h3>";
+	if(aliveCreaturesCount > 1) message = `<h3>${aliveCreaturesCount} worthy adversaries remain in battle</h3>`;
 	if(aliveCreaturesCount === 1) {
 		message = "<h3>Only the true victor remains</h3>";
 		removeActionButtons();
@@ -1104,7 +1104,6 @@ function changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, ms, colN
 
 // A slight pause is added to the deletion process to improve the UI.
 // Pre-coloured the row before removal. 
-
 function deleteRow(rowIDNumber){
 
 	const deleteRowTime = 230;
@@ -1153,8 +1152,6 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 	let gameWorkings = document.getElementById("output");
 	gameWorkings.innerHTML = '';
 
-	let summary = '';
-	let effects = '';
 	let fightLoss = '';
 	let fightContainer = '';
 
@@ -1164,33 +1161,26 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 		fightContainer.className='fight';
 
 		// First fighter
-		summary = creatureSummaryAsText(goFirst[count]);
-		fightContainer.appendChild(wrapInPTags(summary, 'head'));
+		fightContainer = getFighterSummary(goFirst[count], fightContainer);
 		gameWorkings.appendChild(fightContainer);
 
 		if(showPowers === true) {
-			effects	= previewPowerEffects(goFirst[count]);
-			fightContainer.appendChild(wrapInPTags(effects));
-			gameWorkings.appendChild(fightContainer);
+			gameWorkings.appendChild(showPredictedPowerEffects(goFirst[count], fightContainer));
 		}
 		
 		fightLoss = predictPointsLossFromBattle(goFirst[count], goSecond[count]);
 		fightContainer.appendChild(wrapInPTags(fightLoss));
 		gameWorkings.appendChild(fightContainer);
+		
 		fightContainer.appendChild(wrapInPTags('vs', 'head'));
 		gameWorkings.appendChild(fightContainer);
 
-		effects='';
-
 		// Second Fighter
-		summary = creatureSummaryAsText(goSecond[count]);
-		fightContainer.appendChild(wrapInPTags(summary, 'head'));
+		fightContainer = getFighterSummary(goSecond[count], fightContainer);
 		gameWorkings.appendChild(fightContainer);
 
-		if(showPowers === true){
-			effects	= previewPowerEffects(goSecond[count]);
-			fightContainer.appendChild(wrapInPTags(effects));
-			gameWorkings.appendChild(fightContainer);
+		if(showPowers === true) {
+			gameWorkings.appendChild(showPredictedPowerEffects(goSecond[count], fightContainer));
 		}
 
 		fightLoss = predictPointsLossFromBattle(goSecond[count], goFirst[count]);
@@ -1204,8 +1194,6 @@ function displayFightOrder(goFirst, goSecond){
 	let gameWorkings = document.getElementById("output");
 	gameWorkings.innerHTML = '';
 
-	let summary = '';
-	let powers = '';
 	let fightContainer = '';
 
 	for(let count = 0; count<goFirst.length; count++) {
@@ -1213,29 +1201,43 @@ function displayFightOrder(goFirst, goSecond){
 		fightContainer = document.createElement('div');
 		fightContainer.className='fight';
 
-		summary = creatureSummaryAsText(goFirst[count]);
-		fightContainer.appendChild(wrapInPTags(summary, 'head'));
+		// First fighter
+		fightContainer = getFighterSummary(goFirst[count], fightContainer);
+		fightContainer = getPowerSummary(goFirst[count], fightContainer);
 		gameWorkings.appendChild(fightContainer);
-
-		powers = creatureData[goFirst[count]].getSpecialPower();
-		if(powers !== '') {
-			powers = `Special Power: ${powers}`;
-			fightContainer.appendChild(wrapInPTags(powers));
-		}
 
 		fightContainer.appendChild(wrapInPTags('vs', 'head'));
 		gameWorkings.appendChild(fightContainer);
 
-		summary = creatureSummaryAsText(goSecond[count]);
-		fightContainer.appendChild(wrapInPTags(summary, 'head'));
+		// Second fighter
+		fightContainer = getFighterSummary(goSecond[count], fightContainer);
+		fightContainer = getPowerSummary(goSecond[count], fightContainer);
 		gameWorkings.appendChild(fightContainer);
-
-		powers = creatureData[goSecond[count]].getSpecialPower();
-		if(powers !== '') {
-			powers = `Special Power: ${powers}`;
-			fightContainer.appendChild(wrapInPTags(powers));
-		}
 	}	
+}
+
+function getFighterSummary(creature, elementName){
+	let summary = creatureSummaryAsText(creature);
+	elementName.appendChild(wrapInPTags(summary, 'head'));
+		
+	return elementName;
+}
+
+function getPowerSummary(creature, elementName){
+	let powers = creatureData[creature].getSpecialPower();
+	if(powers !== '') {
+		powers = `Special Power: ${powers}`;
+		elementName.appendChild(wrapInPTags(powers));
+	}
+
+	return elementName;
+}
+
+function showPredictedPowerEffects(creature, elementName){
+	let effects	= previewPowerEffects(creature);
+	elementName.appendChild(wrapInPTags(effects));
+
+	return elementName;
 }
 
 function creatureSummaryAsText(creature) {
@@ -1251,8 +1253,8 @@ function winningMessage(){
 	let winningArray = ["has shown them who's boss", "gave out a thrashing", "has showed them the error of their ways",
 	"has put on a masterful performance", "dished out an epic pummelling", "proved all doubters wrong",
 	"took it to the next level", "gave out a pasting", "showed them how it should be done",
-	"taught them all a lesson", "took no prisoners", "silenced the critics", "wasn't messing around",
-	"laid it all on the line in this epic battle","beat them all like a naughty schoolchild",
+	"taught them all a lesson", "took no prisoners", "silenced the critics", 
+	"wasn't messing around", "laid it all on the line in this epic battle",
 	"put on a good show","beat them all by fair means and foul",
 	"had no time for amateurs","showed them that form is temporary but class is permanent",
 	"was not impressed with the skill level of the opposition","gave them all a masterclass in fighting",
@@ -1268,29 +1270,27 @@ function winningMessage(){
 
 function getBeatenCreaturesLastRound(){
 	let message = '';
-	let arrAsString='';
 	let count = eliminated.length;
 	let eliminatedSrt = eliminated.sort();
 	if(count > 0) {		
 		if(count === 1){
 			message = wrapInPTags(`${count} creature was eliminated through battle in the last round: <br/><br/>${eliminatedSrt.toString()}`);
 		} else {
-			arrAsString = eliminatedSrt.join(', ');
+			let arrAsString = eliminatedSrt.join(', ');
 			message = wrapInPTags(`${count} creatures were eliminated through battle in the last round: <br/><br/>${arrAsString}`);
 		}
 	} else {
 		message = wrapInPTags('No creatures were eliminated through battle in the last round');
 	}
+
 	return message;
 }
 
 function previewPowerEffects(creature){
-	let powers = '';
-	let modData = '';
 	let message = '';
-	powers = creatureData[creature].getSpecialPower();
+	let powers = creatureData[creature].getSpecialPower();
 	if(powers !== '') {
-		modData = creatureData[creature].getModificationData();
+		let modData = creatureData[creature].getModificationData();
 		message = `Special Power: ${powers}<br/>Special Power Applied: ${modData}`;
 	}
 
