@@ -1,8 +1,6 @@
-// Vanilla JavaScript used.
-// No frameworks or libraries.
+// Vanilla JavaScript used. No frameworks or libraries.
 
 "use strict";
-
 
 // *** TESTING VARIABLES START HERE ***
 const NUMBER_OF_CREATURES = 100;
@@ -401,6 +399,7 @@ let allDragonNames = [];
 let allWitchNames = [];
 let allTrollNames = [];
 let allSnakeNames = [];
+let victoryMessages = [];
 let eliminated = [];
 
 let creaturesGoFirst = [];
@@ -425,11 +424,12 @@ let importDataAndRun = (callback) => {
 			allDragonNames = response.Dragon;
 			allSnakeNames = response.Snake;
 			allTrollNames = response.Troll;
+			victoryMessages = response.VictoryMessages;
 			callback();
 		}	
 	};
 
-	xhttp.open("GET", "data/creatures.json", true);
+	xhttp.open("GET", "data/gamedata.json", true);
 	xhttp.send();
 }
 
@@ -655,10 +655,21 @@ function resetPage(e){
 	location.reload();
 }
 
+// Modal functions
+span.onclick = function() {
+	modal.style.display = "none";
+}
 
+window.onclick = function(event) {
+	if (event.target === modal) {
+		modal.style.display = "none";
+	}
+}
+
+
+// Main game logic and loop once creature table has been pushed to
+// screen for the first time.
 function rollDiceOrFight(e){
-	// Main game logic and loop once creature table has been pushed to
-	// screen for the first time.
 	let casulaties = document.getElementById('casualties');
 	
 	if(mode === 'Roll the Dice'){ 
@@ -666,37 +677,18 @@ function rollDiceOrFight(e){
 		eliminated = [];
 		casulaties.innerHTML = '';
 		casulaties.style.display = 'none';
-
 		powers.clearPowers();
-		currentDiceRollTotal = 0;
 
-		let doubleDice = false;
-		let dice1 = getRandomInt(1,6);
-		let dice2 = getRandomInt(1,6);
+		let diceData = getDiceData();
+		if(diceData['doubleDice'] === true) powers.setPowers(diceData['dice1']);
 
-		if(FORCE_DICE_MODE_FOR_TESTING){
-			if(FORCED_DICE_TO_DOUBLE >= 1 && FORCED_DICE_TO_DOUBLE <= 6){
-				dice1 = FORCED_DICE_TO_DOUBLE;
-				dice2 = FORCED_DICE_TO_DOUBLE;
-			}
-		}
-
-		if(dice1 === dice2) {
-			doubleDice = true;
-			powers.setPowers(dice1);
-		} 
-
-		currentDiceRollTotal = dice1 + dice2;
-
-		changeDiceImages(dice1, dice2, doubleDice);
+		changeDiceImages(diceData['dice1'], diceData['dice2'], diceData['doubleDice']);
 		resetFightingDataAndFindFighters();
 		assignPowers();
 		removeExtraCreatureIffOddNumber();
 		calculateOpponents();
-		if(SHOW_GAME_MATCH_UPS_MODE === true) {
-			displayFightOrder(creaturesGoFirst, creaturesGoSecond);
-		} 
-
+		displayFightOrder(creaturesGoFirst, creaturesGoSecond);
+		
 	} else if(mode === 'Process Power') {
 		processCreaturePowers(creaturesGoFirst, creaturesGoSecond, sittingOut);
 		updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
@@ -720,6 +712,28 @@ function rollDiceOrFight(e){
 	}
 
 	flipActionMode();
+}
+
+function getDiceData(){
+	currentDiceRollTotal = 0; // main scope
+
+	let doubleDice = false;
+	let dice1 = getRandomInt(1,6);
+	let dice2 = getRandomInt(1,6);
+
+	if(FORCE_DICE_MODE_FOR_TESTING){
+		if(FORCED_DICE_TO_DOUBLE >= 1 && FORCED_DICE_TO_DOUBLE <= 6){
+			dice1 = FORCED_DICE_TO_DOUBLE;
+			dice2 = FORCED_DICE_TO_DOUBLE;
+		}
+	}
+
+	if(dice1 === dice2) doubleDice = true;
+	currentDiceRollTotal = dice1 + dice2;
+
+	let diceData = {'doubleDice':  doubleDice, 'dice1': dice1, 'dice2': dice2};
+
+	return diceData;
 }
 
 function blankDiceBox(){
@@ -806,7 +820,7 @@ function removeExtraCreatureIffOddNumber(){
 
 function processEndOfGoDamage(creaturesTurn = [], opposition = []){
 	// Applies the strength + dice roll penalty paid at end of battle, unless
-	// creature applies 'Hide' or creature has already died (can happen
+	// creature applies 'Hide' or creature has already died (can also happen
 	// when special powers are processed before battle).
 	let subValue;
 
@@ -962,10 +976,10 @@ function displayWinnerMessage(){
 	let message = 'W I N N E R !';
 	gameWorkings.appendChild(wrapInPTags(message, 'head'));
 	let creatureIndex = getWinner();
-	let winMessage = winningMessage();
+	let winMessage = winningMessage(victoryMessages);
 	message = `${creatureData[creatureIndex].getName()} the ${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
 	gameWorkings.appendChild(wrapInPTags(message));
-	displayTrophy();
+	displayTrophyAndMedal();
 	waitForGameReset = true;
 }
 
@@ -977,18 +991,17 @@ function removeActionButtons(){
 		let buttonElement = document.getElementById("btn-action");
 		buttonElement.remove();
 
-		gameOver = true;	// prevents delete creature, health+ and 
-		// health- buttons from working when only the winner remains
+		gameOver = true; // prevents table action buttons from working when only winner remains
 
 		/*alert("There is a winner!");*/
 		modal.style.display = "block";
 		let powerBox = document.getElementById("powers-box");
 		powerBox.style.display ='none';
-		displayTrophy();
+		displayTrophyAndMedal();
 	}
 }
 
-function displayTrophy(){
+function displayTrophyAndMedal(){
 	let diceBox = document.getElementById("dice-box");
 	diceBox.getElementsByTagName("img")[0].src = 'images/trophy.png';
 	diceBox.getElementsByTagName("img")[1].src = 'images/blank.png';
@@ -1108,7 +1121,6 @@ function deleteRow(rowIDNumber){
 
 	const deleteRowTime = 230;
 	const colourOfDeletingRow = "#8b1321";
-
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
 	rowToDelete.style.backgroundColor=colourOfDeletingRow;
 
@@ -1191,29 +1203,30 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 }
 
 function displayFightOrder(goFirst, goSecond){
-	let gameWorkings = document.getElementById("output");
-	gameWorkings.innerHTML = '';
+	if(SHOW_GAME_MATCH_UPS_MODE === true){
+		let gameWorkings = document.getElementById("output");
+		gameWorkings.innerHTML = '';
+		let fightContainer = '';
 
-	let fightContainer = '';
+		for(let count = 0; count<goFirst.length; count++) {
 
-	for(let count = 0; count<goFirst.length; count++) {
+			fightContainer = document.createElement('div');
+			fightContainer.className='fight';
 
-		fightContainer = document.createElement('div');
-		fightContainer.className='fight';
+			// First fighter
+			fightContainer = getFighterSummary(goFirst[count], fightContainer);
+			fightContainer = getPowerSummary(goFirst[count], fightContainer);
+			gameWorkings.appendChild(fightContainer);
 
-		// First fighter
-		fightContainer = getFighterSummary(goFirst[count], fightContainer);
-		fightContainer = getPowerSummary(goFirst[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
+			fightContainer.appendChild(wrapInPTags('vs', 'head'));
+			gameWorkings.appendChild(fightContainer);
 
-		fightContainer.appendChild(wrapInPTags('vs', 'head'));
-		gameWorkings.appendChild(fightContainer);
-
-		// Second fighter
-		fightContainer = getFighterSummary(goSecond[count], fightContainer);
-		fightContainer = getPowerSummary(goSecond[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
-	}	
+			// Second fighter
+			fightContainer = getFighterSummary(goSecond[count], fightContainer);
+			fightContainer = getPowerSummary(goSecond[count], fightContainer);
+			gameWorkings.appendChild(fightContainer);
+		}	
+	}
 }
 
 function getFighterSummary(creature, elementName){
@@ -1249,23 +1262,11 @@ function creatureSummaryAsText(creature) {
 	return `${creatureName} the ${species} - Strength: ${strength} Health: ${health}`;
 }
 
-function winningMessage(){
-	let winningArray = ["has shown them who's boss", "gave out a thrashing", "has showed them the error of their ways",
-	"has put on a masterful performance", "dished out an epic pummelling", "proved all doubters wrong",
-	"took it to the next level", "gave out a pasting", "showed them how it should be done",
-	"taught them all a lesson", "took no prisoners", "silenced the critics", 
-	"wasn't messing around", "laid it all on the line in this epic battle",
-	"put on a good show","beat them all by fair means and foul",
-	"had no time for amateurs","showed them that form is temporary but class is permanent",
-	"was not impressed with the skill level of the opposition","gave them all a masterclass in fighting",
-	"dedicated the win to Auntie Norah", "showed no mercy", "showed true courage",
-	"put the victory down to superior footwork and experience","vowed to return next year to defend the title",
-	"publically thanked the sponsors", "gave a victory dance", "entertained the crowd and put on a good show",
-	"was happy with the win but critical of the performance"];
+function winningMessage(allWinningMessages=[]){
+	let randomInt = getRandomInt(0,(allWinningMessages.length-1));
+	if(allWinningMessages.length === 0) return "Error: No winning message found";
 
-	let randomInt = getRandomInt(0,(winningArray.length-1));
-
-	return winningArray[randomInt];
+	return allWinningMessages[randomInt];
 }
 
 function getBeatenCreaturesLastRound(){
@@ -1323,15 +1324,4 @@ function wrapInPTags(text = '', pClass = null){
 	pTagString.innerHTML = text;
 
 	return pTagString;
-}
-
-// Modal functions
-span.onclick = function() {
-	modal.style.display = "none";
-}
-
-window.onclick = function(event) {
-	if (event.target === modal) {
-		modal.style.display = "none";
-	}
 }
