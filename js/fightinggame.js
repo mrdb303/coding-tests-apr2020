@@ -7,7 +7,7 @@ const NUMBER_OF_CREATURES = 100;
 
 // Force 'special powers' for testing: 
 const FORCE_DICE_MODE_FOR_TESTING = false;
-const FORCED_DICE_TO_DOUBLE = 3;	// 1 to 6
+const FORCED_DICE_TO_DOUBLE = 4;	// 1 to 6
 
 // *** TESTING VARIABLES END HERE ***
 
@@ -39,6 +39,8 @@ class Creature {
 	this.opponentIndexNum = null;
 	this.tablerowdata = [];
 	this.deleted = false;
+	this.fought = [];
+	this.powersUsed = [];
 	}
 
 	getRandomInt(min, max) {
@@ -144,8 +146,25 @@ class Creature {
 		return this.specialPower;
 	}
 
+	pushPowersToHistory() {
+		if(this.specialPower != ''){
+			this.powersUsed.push(this.specialPower);
+		}
+	}
+
+	getPowersUsed(){
+		let returnVal = false;
+		if(this.powersUsed.length > 0) returnVal = this.powersUsed.join(', ');
+		
+		return returnVal;
+	}
+
 	getOpponent(){
 		return this.opponent;
+	}
+
+	getOpponentIndex(){
+		return this.opponentIndexNum;
 	}
 
 	getModificationData() {
@@ -218,7 +237,18 @@ class Creature {
 		
 	}
 
-	getDetailsAsArray() {
+	recordOpponentHistory(){
+		this.fought.push(this.opponent); 
+	}
+
+	getOpponentHistoryAsString(){
+		if(this.fought.length > 1){
+			this.fought = this.fought.filter( (el, i, arr) => arr.indexOf(el) === i);
+		}
+		return this.fought.join(', ');
+	}
+
+	getTableDetailsAsArray() {
 		this.tablerowdata['creatureSpecies'] = this.creatureSpecies;
 		this.tablerowdata['name'] = this.name;
 		this.tablerowdata['image'] = this.image; 
@@ -542,7 +572,7 @@ function createDynamicTable(cssIdName='#table-box', tableHeadings=[], tableData=
 
 	tableData.forEach(function(item, index) {
 		if(item != null){
-			indivRowData = item.getDetailsAsArray();
+			indivRowData = item.getTableDetailsAsArray();
 			creatureRow = createCreatureTableDataRow(indivRowData, index);
 			body.appendChild(creatureRow);
 		}
@@ -739,15 +769,15 @@ function getDiceData(){
 function blankDiceBox(){
 	let blankImgPath = `images/blank.png`;
 	
-	let diceBox = document.getElementById("dice-box");
-	diceBox.getElementsByTagName("img")[0].src = blankImgPath;
-	diceBox.getElementsByTagName("img")[1].src = blankImgPath;
+	let cssDiv = document.getElementById("dice-box");
+	cssDiv.getElementsByTagName("img")[0].src = blankImgPath;
+	cssDiv.getElementsByTagName("img")[1].src = blankImgPath;
 	
-	let powerBox = document.getElementById("powers-box");
-	powerBox.innerHTML = '';
+	cssDiv = document.getElementById("powers-box");
+	cssDiv.innerHTML = '';
 	
-	let special = document.getElementById("special");
-	special.getElementsByTagName("img")[0].src = blankImgPath;
+	cssDiv = document.getElementById("special");
+	cssDiv.getElementsByTagName("img")[0].src = blankImgPath;
 }
 
 function resetFightingDataAndFindFighters(){
@@ -787,10 +817,10 @@ function writeCreaturesOpponent(creatureID, opponentID){
 function assignPowers(){
 	let specialPowersPriorityList = shuffleArray(fightersInGame);
 	let powersToFetch = powers.getNumberOfPowersAssigned();
-	let rowSelected = null;
 	let power = "";
 
 	if(powersToFetch > 0){
+		let rowSelected = null;
 		let powersIssued = powers.getPowers();
 
 		// Rarer powers are chosen by default if there are more powers than players.
@@ -855,6 +885,7 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 	for(let count=0;count<creaturesToProcess.length;count++){
 		
 		creatureData[creaturesToProcess[count]].setSpecialPowerVariables();
+		creatureData[creaturesToProcess[count]].pushPowersToHistory();
 		creatureData[creaturesToProcess[count]].processPowers();
 
 		// both steal strength and can decrease health need to be performed
@@ -955,7 +986,9 @@ function displayCreatureCountEndIfWinner(){
 	let message = '';
 	let aliveCreaturesCount = totalOfCreaturesAlive();
 
-	if(aliveCreaturesCount > 1) message = `<h3>${aliveCreaturesCount} worthy adversaries remain in battle</h3>`;
+	if(aliveCreaturesCount > 1) message = `<h3>${aliveCreaturesCount} worthy 
+	adversaries remain in battle</h3>`;
+
 	if(aliveCreaturesCount === 1) {
 		message = "<h3>Only the true victor remains</h3>";
 		removeActionButtons();
@@ -977,10 +1010,30 @@ function displayWinnerMessage(){
 	gameWorkings.appendChild(wrapInPTags(message, 'head'));
 	let creatureIndex = getWinner();
 	let winMessage = winningMessage(victoryMessages);
-	message = `${creatureData[creatureIndex].getName()} the ${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
+	
+	message = `<br/>${creatureData[creatureIndex].getName()} the 
+	${creatureData[creatureIndex].getSpecies()} ${winMessage}.`;
+
 	gameWorkings.appendChild(wrapInPTags(message));
+
+	// Opponents defeated may not equate to number of fighting rounds
+	// as not all rounds result in a creature being eliminated.
+	gameWorkings.appendChild(wrapInPTags(`<br/>Opponents defeated: 
+	${creatureData[creatureIndex].getOpponentHistoryAsString()}`));
+
+	let powersUsed = creatureData[creatureIndex].getPowersUsed();
+
+	if(powersUsed != false) {
+		gameWorkings.appendChild(wrapInPTags(`<br/>Powers used: ${powersUsed}.`));
+	} else {
+		gameWorkings.appendChild(wrapInPTags(`<br/>There was no need for 
+		${creatureData[creatureIndex].getName()} to resort to the use of special 
+		powers to prove superiority.`));
+	}
+
 	displayTrophyAndMedal();
 	waitForGameReset = true;
+
 }
 
 function removeActionButtons(){
@@ -1002,14 +1055,16 @@ function removeActionButtons(){
 }
 
 function displayTrophyAndMedal(){
-	let diceBox = document.getElementById("dice-box");
-	diceBox.getElementsByTagName("img")[0].src = 'images/trophy.png';
-	diceBox.getElementsByTagName("img")[1].src = 'images/blank.png';
-	diceBox.style.display ='block';
-	let powerBox = document.getElementById("powers-box");
-	powerBox.style.display ='none';
-	let special = document.getElementById("special");
-	special.getElementsByTagName("img")[0].src = 'images/firstplace.png';
+	let cssDiv = document.getElementById("dice-box");
+	cssDiv.getElementsByTagName("img")[0].src = 'images/trophy.png';
+	cssDiv.getElementsByTagName("img")[1].src = 'images/blank.png';
+	cssDiv.style.display ='block';
+
+	cssDiv = document.getElementById("powers-box");
+	cssDiv.style.display ='none';
+
+	cssDiv = document.getElementById("special");
+	cssDiv.getElementsByTagName("img")[0].src = 'images/firstplace.png';
 }
 
 function totalOfCreaturesAlive(){
@@ -1054,7 +1109,7 @@ function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
 
 	if(doubleDice === true) {
 
-		let powerImageName;
+		let powerImageName = "";
 		(dice1 === 1)? powerImageName = "spower.png" : powerImageName = "spowers.png";
 		specialBox.getElementsByTagName("img")[0].src = `images/${powerImageName}`;
 
@@ -1084,7 +1139,7 @@ function OutputPowers(){
 
 
 // This section is for performing the actions when any of
-// the three action buttons are clicked.
+// the three table action buttons are clicked.
 
 function increaseHealth(rowIDNumber){
 	creatureData[rowIDNumber].incrementHealth(rowIDNumber);
@@ -1121,6 +1176,11 @@ function deleteRow(rowIDNumber){
 
 	const deleteRowTime = 230;
 	const colourOfDeletingRow = "#8b1321";
+
+	let opponent = creatureData[rowIDNumber].getOpponentIndex();
+	creatureData[opponent].recordOpponentHistory();
+	
+
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
 	rowToDelete.style.backgroundColor=colourOfDeletingRow;
 
@@ -1132,7 +1192,6 @@ function deleteRow(rowIDNumber){
 }
 
 function shuffleArray(array) {
-
 	// Durstenfeld shuffle - courtesy of Stackoverflow
 	for(let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));

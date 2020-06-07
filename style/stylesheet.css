@@ -30,13 +30,16 @@ font-size: 0.95em;
 color: #e0e0e0;
 }
 
-p, li, ol {
+p, li {
 font-family: 'Roboto', Arial, sans-serif;
 font-size: 0.875em;
 line-height: 1.3em;
 color: #e0e0e0;
 }
 
+ul {
+padding-left: 25px;
+}
 
 table {
 border-collapse: collapse;
@@ -255,6 +258,18 @@ float: left;
 display: none;
 padding: 10px 3px 20px 3px;
 border-radius: 15px;
+}
+
+section {
+display: block;
+margin-bottom: 60px;
+}
+
+section h2{
+font-family: 'Volkhov', serif;
+font-size: 0.95em;
+color: #e0e0e0;
+padding-bottom: 22px;
 }
 
 footer {
