@@ -205,7 +205,18 @@ padding-bottom: 20px;
 border-radius: 15px;
 }
 
-.fight p {
+.instruct {
+margin-top: 10px;
+margin-bottom: 30px;
+background-color: #00454A;
+width: 100%;
+float: left;
+display: block;
+padding: 30px 15px 20px 15px;
+border-radius: 15px;
+}
+
+.fight p, .instruct p {
 font-family: 'Roboto', Arial, sans-serif;
 font-size: 0.938em;
 line-height: 1.3em;
