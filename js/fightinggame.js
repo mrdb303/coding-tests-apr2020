@@ -1181,7 +1181,9 @@ function deleteRow(rowIDNumber){
 	const colourOfDeletingRow = "#8b1321";
 
 	let opponent = creatureData[rowIDNumber].getOpponentIndex();
-	creatureData[opponent].recordOpponentHistory();
+
+	// Will occur If creature is manually removed before a battle has commenced
+	if(opponent != undefined)creatureData[opponent].recordOpponentHistory();
 	
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
 	rowToDelete.style.backgroundColor=colourOfDeletingRow;
