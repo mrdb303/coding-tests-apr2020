@@ -762,7 +762,7 @@ function fightAction(){
 	casulaties.style.display = 'block';
 	casulaties.appendChild(getBeatenCreaturesLastRound());
 
-	if(gameOver === false)clearOutputGameData();
+	if(gameOver === false && SHOW_GAME_MATCH_UPS_MODE === true) clearExistingHTMLOfDivId('output');
 }
 
 
@@ -1019,15 +1019,6 @@ function pushPowerAndOppToTableRow(rowID, sitOut=false){
 	rowSelected.getElementsByTagName("td")[5].innerHTML = opponentName;
 }
 
-
-function clearOutputGameData(){
-	if(SHOW_GAME_MATCH_UPS_MODE === true) {
-		let gameWorkings = document.getElementById("output");
-		gameWorkings.innerHTML = '';
-	}
-}
-
-
 function displayCreatureCountEndIfWinner(){
 	let message = '';
 	let aliveCreaturesCount = totalOfCreaturesAlive();
@@ -1038,8 +1029,8 @@ function displayCreatureCountEndIfWinner(){
 	if(aliveCreaturesCount === 1) {
 		message = "<h3>Only the true victor remains</h3>";
 		removeActionButtons();
-		clearOutputGameData();
-		
+
+		if(SHOW_GAME_MATCH_UPS_MODE === true) clearExistingHTMLOfDivId('output');		
 		if(waitForGameReset===false) displayWinnerMessage();
 	}
 
@@ -1079,7 +1070,6 @@ function displayWinnerMessage(){
 
 	displayTrophyAndMedal();
 	waitForGameReset = true;
-
 }
 
 function removeActionButtons(){
@@ -1091,8 +1081,6 @@ function removeActionButtons(){
 		buttonElement.remove();
 
 		gameOver = true; // prevents table action buttons from working when only winner remains
-
-		/*alert("There is a winner!");*/
 		modal.style.display = "block";
 		let powerBox = document.getElementById("powers-box");
 		powerBox.style.display ='none';
@@ -1189,14 +1177,12 @@ function changeRowValWithOptionalFontSizeChange(rowIDNumber, newHealth, ms, colN
 // A slight pause is added to the deletion process to improve the UI.
 // Pre-coloured the row before removal. 
 function deleteRow(rowIDNumber){
-
 	const deleteRowTime = 230;
 	const colourOfDeletingRow = "#8b1321";
 
 	let opponent = creatureData[rowIDNumber].getOpponentIndex();
 	creatureData[opponent].recordOpponentHistory();
 	
-
 	let rowToDelete = document.getElementById("row" + rowIDNumber);
 	rowToDelete.style.backgroundColor=colourOfDeletingRow;
 
@@ -1354,14 +1340,13 @@ function getBeatenCreaturesLastRound(){
 }
 
 function previewPowerEffects(creature){
-	let message = '';
 	let powers = creatureData[creature].getSpecialPower();
 	if(powers !== '') {
 		let modData = creatureData[creature].getModificationData();
-		message = `Special Power: ${powers}<br/>Special Power Applied: ${modData}`;
+		return `Special Power: ${powers}<br/>Special Power Applied: ${modData}`;
 	}
 
-	return message;
+	return '';
 }
 
 function predictPointsLossFromBattle(creature, opponent) {
