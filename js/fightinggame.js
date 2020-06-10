@@ -569,8 +569,9 @@ function mainEntryPoint() {
 }
 
 
-// This is only run once on the reload of page-table is manipulated elsewhere
-// after the this function is run:
+// This is only run once on the reload of page-table. The table is manipulated 
+// elsewhere after the this function is run, after buttons are pressed.
+// Either by rollDiceProcessPowerOrFight() or processActionButtonClick().
 function createDynamicTable(cssIdName='#table-box', tableData=[]){
 
 	let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Opponent", "Action");
@@ -707,7 +708,7 @@ window.onclick = function(event) {
 function rollDiceProcessPowerOrFight(e){
 	
 	if(mode === 'Roll the Dice'){ 
-		rollTheDice();
+		rollTheDice(SHOW_GAME_MATCH_UPS_MODE);
 		
 	} else if(mode === 'Process Power') {
 		processPowersAction();
@@ -735,7 +736,7 @@ function rollTheDice(){
 	assignPowers();
 	removeExtraCreatureIffOddNumber();
 	calculateOpponents();
-	displayFightOrder(creaturesGoFirst, creaturesGoSecond);
+	if(SHOW_GAME_MATCH_UPS_MODE === true) displayFightOrder(creaturesGoFirst, creaturesGoSecond);
 }
 
 // Second of three game modes triggered by rollDiceProcessPowerOrFight()
@@ -1277,30 +1278,28 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 }
 
 function displayFightOrder(goFirst, goSecond){
-	if(SHOW_GAME_MATCH_UPS_MODE === true){
-		let gameWorkings = document.getElementById("output");
-		gameWorkings.innerHTML = '';
-		let fightContainer = '';
+	let gameWorkings = document.getElementById("output");
+	gameWorkings.innerHTML = '';
+	let fightContainer = '';
 
-		for(let count = 0; count<goFirst.length; count++) {
+	for(let count = 0; count<goFirst.length; count++) {
 
-			fightContainer = document.createElement('div');
-			fightContainer.className='fight';
+		fightContainer = document.createElement('div');
+		fightContainer.className='fight';
 
-			// First fighter
-			fightContainer = getFighterSummary(goFirst[count], fightContainer);
-			fightContainer = getPowerSummary(goFirst[count], fightContainer);
-			gameWorkings.appendChild(fightContainer);
+		// First fighter
+		fightContainer = getFighterSummary(goFirst[count], fightContainer);
+		fightContainer = getPowerSummary(goFirst[count], fightContainer);
+		gameWorkings.appendChild(fightContainer);
 
-			fightContainer.appendChild(wrapInPTags('vs', 'head'));
-			gameWorkings.appendChild(fightContainer);
+		fightContainer.appendChild(wrapInPTags('vs', 'head'));
+		gameWorkings.appendChild(fightContainer);
 
-			// Second fighter
-			fightContainer = getFighterSummary(goSecond[count], fightContainer);
-			fightContainer = getPowerSummary(goSecond[count], fightContainer);
-			gameWorkings.appendChild(fightContainer);
-		}	
-	}
+		// Second fighter
+		fightContainer = getFighterSummary(goSecond[count], fightContainer);
+		fightContainer = getPowerSummary(goSecond[count], fightContainer);
+		gameWorkings.appendChild(fightContainer);
+	}	
 }
 
 function getFighterSummary(creature, elementName){
