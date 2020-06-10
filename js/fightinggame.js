@@ -569,6 +569,8 @@ function mainEntryPoint() {
 }
 
 
+// This is only run once on the reload of page-table is manipulated elsewhere
+// after the this function is run:
 function createDynamicTable(cssIdName='#table-box', tableData=[]){
 
 	let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Opponent", "Action");
@@ -576,8 +578,6 @@ function createDynamicTable(cssIdName='#table-box', tableData=[]){
 	document.querySelector(cssIdName).innerHTML = "";
 	
 	let table = document.createElement('table');
-
-	// Table headings:
 	let head = document.createElement('thead');
 	let cell;
 
@@ -631,9 +631,6 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 	return row;
 }
 
-
-
-
 function createTDElementInputButtons(imgPath=ERR_IMG, inputClass, inputName, idNumber){
 	let inputType = document.createElement('input');
 	inputType.className = inputClass;
@@ -647,9 +644,6 @@ function createTDElementInputButtons(imgPath=ERR_IMG, inputClass, inputName, idN
 	
 	return inputType;
 }
-
-
-
 
 
 
@@ -801,8 +795,8 @@ function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
 	diceBox.getElementsByTagName("img")[0].src = `images/dice${dice1}.png`;
 	diceBox.getElementsByTagName("img")[1].src = `images/dice${dice2}.png`;
 	
-	let powersBox = document.getElementById("powers-box");
-	powersBox.innerHTML = '';
+	clearExistingHTMLOfDivId("powers-box");
+
 	let specialBox = document.getElementById("special");
 
 	if(doubleDice === true) {
@@ -813,7 +807,7 @@ function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
 
 		powers.setPowers(dice1); // Pass one value as it's a double value
 		
-		OutputPowers();
+		OutputArrayToDivIdAsUnorderedList("powers-box", powers.getPowers());
 	} else {
 		specialBox.getElementsByTagName("img")[0].src = "images/blank.png";
 	}
@@ -826,8 +820,7 @@ function blankDiceBox(){
 	cssDiv.getElementsByTagName("img")[0].src = blankImgPath;
 	cssDiv.getElementsByTagName("img")[1].src = blankImgPath;
 	
-	cssDiv = document.getElementById("powers-box");
-	cssDiv.innerHTML = '';
+	clearExistingHTMLOfDivId("powers-box");
 	
 	cssDiv = document.getElementById("special");
 	cssDiv.getElementsByTagName("img")[0].src = blankImgPath;
@@ -1146,19 +1139,17 @@ function removeTheDead(){
 	displayCreatureCountEndIfWinner();
 }
 
-function OutputPowers(){
-	let powersBox = document.getElementById("powers-box");
+function OutputArrayToDivIdAsUnorderedList(idName, arrToConvert=[]){
+	let divElement = document.getElementById(idName);
 	let ulElem = document.createElement("ul");
 
-	let powerList = powers.getPowers();
-
-	powerList.forEach(function(item){
+	arrToConvert.forEach(function(item){
 		let para = document.createElement("li");
 		para.innerHTML = item;
 		ulElem.appendChild(para);
 	});
 
-	powersBox.appendChild(ulElem);
+	divElement.appendChild(ulElem);
 }
 
 
@@ -1392,6 +1383,11 @@ function getWinner(){
 	
 	fightersInGame = fightersInGame.map((creature) => creature.getIndexNumber());
 	return fightersInGame[0];
+}
+
+function clearExistingHTMLOfDivId(idName){
+	let cssDiv = document.getElementById(idName);
+	cssDiv.innerHTML = '';
 }
 
 function wrapInPTags(text = '', pClass = null){
