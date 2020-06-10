@@ -4,17 +4,14 @@
 
 // *** TESTING VARIABLES START HERE ***
 const NUMBER_OF_CREATURES = 100;
-
-// Force 'special powers' for testing: 
 const FORCE_DICE_MODE_FOR_TESTING = false;
 const FORCED_DICE_TO_DOUBLE = 4;	// 1 to 6
-
 // *** TESTING VARIABLES END HERE ***
-
 
 const SHOW_GAME_MATCH_UPS_MODE = true;
 const PREVIEW_SPECIAL_POWER_RESULTS = true;
 const MAGINIFIED_INC_DEC_ON = true;
+
 
 class Creature {
 	constructor() {
@@ -260,7 +257,6 @@ class Creature {
 	}
 }
 
-
 // Creature child classes contain attributes specific to
 // that particular creature type.
 
@@ -348,9 +344,8 @@ class Powers {
 
 
 // This class is for generating creature names that are linked to the
-// creature type.
-// This tracks which creature names have already been issued to avoid 
-// the name being issued again. Also randomises name order for each 
+// creature type. This tracks which creature names have already been issued to 
+// avoid the name being issued again. Also randomises name order for each 
 // creature type on refresh.
 
 class CreatureNames {
@@ -415,12 +410,6 @@ let creatureNameFactory = (function (creatureType = "") {
 })();
 
 
-let getRandomInt = (min, max) => {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 
 let mode = "Roll the Dice";
 let currentDiceRollTotal = 0;
@@ -440,9 +429,8 @@ let creatures;
 let actionButtonRemoved = false;
 
 
-
 let importDataAndRun = (callback) => {
-	// Pull creature name data from JSON file
+	// Pull creature name and winning message data from JSON file
 
 	let xhttp = new XMLHttpRequest();
 
@@ -461,6 +449,43 @@ let importDataAndRun = (callback) => {
 
 	xhttp.open("GET", "data/gamedata.json", true);
 	xhttp.send();
+}
+
+
+let getRandomInt = (min, max) => {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+let winningMessage = (allWinningMessages=[]) => {
+	let randomInt = getRandomInt(0,(allWinningMessages.length-1));
+	if(allWinningMessages.length === 0) return "Error: No winning message found";
+	return allWinningMessages[randomInt];
+}
+
+let createTableTDElementText = (textValue='') =>{
+	let cell = document.createElement('td');
+	cell.appendChild(document.createTextNode(textValue));
+	return cell;
+}
+
+let createTDElementImage = (imgPath=ERR_IMG, title='') =>{
+	let cell = document.createElement('td');
+	let img = document.createElement('img');
+	img.src = imgPath;
+	img.title = title;
+	cell.appendChild(img);
+	return cell;
+}
+
+let createTDWithInputButtons = (objcount) => {
+	// Buttons in last table column for creature actions
+	let tdCell = document.createElement('td');
+	tdCell.appendChild(createTDElementInputButtons('images/delete.png', 'btn', 'del', objcount));
+	tdCell.appendChild(createTDElementInputButtons('images/heart_inc.png', 'btn', 'inc', objcount));
+	tdCell.appendChild(createTDElementInputButtons('images/heart_dec.png', 'btn', 'dec', objcount));
+	return tdCell;
 }
 
 
@@ -483,12 +508,10 @@ let creatureNameFound = '';
 let powers;
 let gameOver = false;
 let waitForGameReset = false;
-
-let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Opponent", "Action");
 const ERR_IMG = 'images/error.png';
 
 let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
-let actionButton = document.getElementById('btn-action').addEventListener('click', rollDiceOrFight);
+let actionButton = document.getElementById('btn-action').addEventListener('click', rollDiceProcessPowerOrFight);
 let modal = document.getElementById("modal-box");
 let span = document.getElementsByClassName("close")[0];
 
@@ -542,12 +565,13 @@ function mainEntryPoint() {
 			creatureData[count].setIndexNumber(count);
 		}
 	}
-	if(!errorFound)	createDynamicTable('#table-box', tableHeadings, creatureData);
+	if(!errorFound)	createDynamicTable('#table-box', creatureData);
 }
 
 
-function createDynamicTable(cssIdName='#table-box', tableHeadings=[], tableData=[]){
+function createDynamicTable(cssIdName='#table-box', tableData=[]){
 
+	let tableHeadings = Array("Name","Type","Strength","Health", "Special Power", "Opponent", "Action");
 	let tablediv = document.querySelector(cssIdName);
 	document.querySelector(cssIdName).innerHTML = "";
 	
@@ -588,12 +612,12 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 		let row = document.createElement('tr');
 		row.id = "row" + index;
 
-		row.appendChild(createTDElementText(indivRowData['name'])); 
+		row.appendChild(createTableTDElementText(indivRowData['name'])); 
 		row.appendChild(createTDElementImage(indivRowData['image'], indivRowData['creatureSpecies']));
-		row.appendChild(createTDElementText(indivRowData['strength']));
-		row.appendChild(createTDElementText(indivRowData['health']));
-		row.appendChild(createTDElementText(indivRowData['specialPower']));
-		row.appendChild(createTDElementText(indivRowData['opponent']));
+		row.appendChild(createTableTDElementText(indivRowData['strength']));
+		row.appendChild(createTableTDElementText(indivRowData['health']));
+		row.appendChild(createTableTDElementText(indivRowData['specialPower']));
+		row.appendChild(createTableTDElementText(indivRowData['opponent']));
 		row.appendChild(createTDWithInputButtons(index));
 
 		return row;
@@ -602,35 +626,13 @@ function createCreatureTableDataRow(indivRowData = null, index = null){
 	// If no data is found, return an empty table row-a test for errors
 	let row = document.createElement('tr');
 	for(let count=0;count<6; count++){
-		row.appendChild(createTDElementText('')); 
+		row.appendChild(createTableTDElementText('')); 
 	}
 	return row;
 }
 
-function createTDElementText(textValue=''){
-	let cell = document.createElement('td');
-	cell.appendChild(document.createTextNode(textValue));
-	return cell;
-}
 
-function createTDElementImage(imgPath=ERR_IMG, title=''){
-	let cell = document.createElement('td');
-	let img = document.createElement('img');
-	img.src = imgPath;
-	img.title = title;
-	cell.appendChild(img);
-	return cell;
-}
 
-function createTDWithInputButtons(objcount) {
-	// Buttons in last table column for creature actions
-	let tdCell = document.createElement('td');
-	tdCell.appendChild(createTDElementInputButtons('images/delete.png', 'btn', 'del', objcount));
-	tdCell.appendChild(createTDElementInputButtons('images/heart_inc.png', 'btn', 'inc', objcount));
-	tdCell.appendChild(createTDElementInputButtons('images/heart_dec.png', 'btn', 'dec', objcount));
-
-	return tdCell;
-}
 
 function createTDElementInputButtons(imgPath=ERR_IMG, inputClass, inputName, idNumber){
 	let inputType = document.createElement('input');
@@ -645,6 +647,9 @@ function createTDElementInputButtons(imgPath=ERR_IMG, inputClass, inputName, idN
 	
 	return inputType;
 }
+
+
+
 
 
 
@@ -681,6 +686,7 @@ function processActionButtonClick(e){
 	displayCreatureCountEndIfWinner();
 }
 
+// The reset button
 function resetPage(e){
 	location.reload();
 }
@@ -697,52 +703,73 @@ window.onclick = function(event) {
 }
 
 
+
 // Main game logic and loop once creature table has been pushed to
 // screen for the first time.
-function rollDiceOrFight(e){
-	let casulaties = document.getElementById('casualties');
+// These are the three main game modes (three functions listed
+// directly beneath).
+// Please remember that the game could also be ended by the use of the delete 
+// character action button on the second last remaining creature in the table.
+function rollDiceProcessPowerOrFight(e){
 	
 	if(mode === 'Roll the Dice'){ 
-
-		eliminated = [];
-		casulaties.innerHTML = '';
-		casulaties.style.display = 'none';
-		powers.clearPowers();
-
-		let diceData = getDiceData();
-		if(diceData['doubleDice'] === true) powers.setPowers(diceData['dice1']);
-
-		changeDiceImages(diceData['dice1'], diceData['dice2'], diceData['doubleDice']);
-		resetFightingDataAndFindFighters();
-		assignPowers();
-		removeExtraCreatureIffOddNumber();
-		calculateOpponents();
-		displayFightOrder(creaturesGoFirst, creaturesGoSecond);
+		rollTheDice();
 		
 	} else if(mode === 'Process Power') {
-		processCreaturePowers(creaturesGoFirst, creaturesGoSecond, sittingOut);
-		updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
-		removeTheDead();
-
-		processCreaturePowers(creaturesGoSecond, creaturesGoFirst, sittingOut);
-		updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
-		updateStrengthHealthAndPowersOnTable(creaturesGoSecond);
-		removeTheDead();
-
-		if(SHOW_GAME_MATCH_UPS_MODE === true && totalOfCreaturesAlive() >1) {
-			outputGameData(creaturesGoFirst, creaturesGoSecond, PREVIEW_SPECIAL_POWER_RESULTS);
-		} 
+		processPowersAction();
 		
 	} else  {
-		performFightActions();
-		casulaties.style.display = 'block';
-		casulaties.appendChild(getBeatenCreaturesLastRound());
-
-		if(gameOver === false)clearOutputGameData();
+		fightAction();
 	}
 
 	flipActionMode();
 }
+
+// First of three game modes triggered by rollDiceProcessPowerOrFight()
+function rollTheDice(){
+	let casulaties = document.getElementById('casualties');
+	eliminated = [];
+	casulaties.innerHTML = '';
+	casulaties.style.display = 'none';
+	powers.clearPowers();
+
+	let diceData = getDiceData();
+	if(diceData['doubleDice'] === true) powers.setPowers(diceData['dice1']);
+
+	changeDiceImages(diceData['dice1'], diceData['dice2'], diceData['doubleDice']);
+	resetFightingDataAndFindFighters();
+	assignPowers();
+	removeExtraCreatureIffOddNumber();
+	calculateOpponents();
+	displayFightOrder(creaturesGoFirst, creaturesGoSecond);
+}
+
+// Second of three game modes triggered by rollDiceProcessPowerOrFight()
+function processPowersAction(){
+	processCreaturePowers(creaturesGoFirst, creaturesGoSecond, sittingOut);
+	updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
+	removeTheDead();
+
+	processCreaturePowers(creaturesGoSecond, creaturesGoFirst, sittingOut);
+	updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
+	updateStrengthHealthAndPowersOnTable(creaturesGoSecond);
+	removeTheDead();
+
+	if(SHOW_GAME_MATCH_UPS_MODE === true && totalOfCreaturesAlive() >1) {
+		outputGameData(creaturesGoFirst, creaturesGoSecond, PREVIEW_SPECIAL_POWER_RESULTS);
+	} 
+}
+
+// Third of three game modes triggered by rollDiceProcessPowerOrFight()
+function fightAction(){
+	let casulaties = document.getElementById('casualties');
+	performFightActions();
+	casulaties.style.display = 'block';
+	casulaties.appendChild(getBeatenCreaturesLastRound());
+
+	if(gameOver === false)clearOutputGameData();
+}
+
 
 function getDiceData(){
 	currentDiceRollTotal = 0; // main scope
@@ -766,6 +793,32 @@ function getDiceData(){
 	return diceData;
 }
 
+
+// Draws dice and displays 'Special Power(s)' image if required. Uses two 
+// 'Special Powers' image versions, singular and plural.
+function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
+	let diceBox = document.getElementById("dice-box");
+	diceBox.getElementsByTagName("img")[0].src = `images/dice${dice1}.png`;
+	diceBox.getElementsByTagName("img")[1].src = `images/dice${dice2}.png`;
+	
+	let powersBox = document.getElementById("powers-box");
+	powersBox.innerHTML = '';
+	let specialBox = document.getElementById("special");
+
+	if(doubleDice === true) {
+
+		let powerImageName = "";
+		(dice1 === 1)? powerImageName = "spower.png" : powerImageName = "spowers.png";
+		specialBox.getElementsByTagName("img")[0].src = `images/${powerImageName}`;
+
+		powers.setPowers(dice1); // Pass one value as it's a double value
+		
+		OutputPowers();
+	} else {
+		specialBox.getElementsByTagName("img")[0].src = "images/blank.png";
+	}
+}
+
 function blankDiceBox(){
 	let blankImgPath = `images/blank.png`;
 	
@@ -779,6 +832,7 @@ function blankDiceBox(){
 	cssDiv = document.getElementById("special");
 	cssDiv.getElementsByTagName("img")[0].src = blankImgPath;
 }
+
 
 function resetFightingDataAndFindFighters(){
 	remainCreatures = 0;
@@ -868,7 +922,6 @@ function processEndOfGoDamage(creaturesTurn = [], opposition = []){
 }
 
 function performFightActions(){
-
 	processEndOfGoDamage(creaturesGoFirst, creaturesGoSecond);
 	updateStrengthHealthAndPowersOnTable(creaturesGoSecond);
 	updateStrengthHealthAndPowersOnTable(creaturesGoFirst);
@@ -921,7 +974,6 @@ function stealStrengthIfApplicable(goFirst, goSecond){
 }
 
 function updateStrengthHealthAndPowersOnTable(creatureArray){
-	
 	let rowSelected;
 	let healthValue = 0;
 	let strengthValue = 0;
@@ -1093,34 +1145,6 @@ function removeTheDead(){
 
 	displayCreatureCountEndIfWinner();
 }
-
-// Called from rollDiceOrFight() - Draws dice and displays 'Special Power(s)'
-// image if required. Uses two 'Special Powers' image versions, singular 
-// and plural.
-
-function changeDiceImages(dice1=1, dice2=2, doubleDice=false){
-	let diceBox = document.getElementById("dice-box");
-	diceBox.getElementsByTagName("img")[0].src = `images/dice${dice1}.png`;
-	diceBox.getElementsByTagName("img")[1].src = `images/dice${dice2}.png`;
-	
-	let powersBox = document.getElementById("powers-box");
-	powersBox.innerHTML = '';
-	let specialBox = document.getElementById("special");
-
-	if(doubleDice === true) {
-
-		let powerImageName = "";
-		(dice1 === 1)? powerImageName = "spower.png" : powerImageName = "spowers.png";
-		specialBox.getElementsByTagName("img")[0].src = `images/${powerImageName}`;
-
-		powers.setPowers(dice1); // Pass one value as it's a double value
-		
-		OutputPowers();
-	} else {
-		specialBox.getElementsByTagName("img")[0].src = "images/blank.png";
-	}
-}
-
 
 function OutputPowers(){
 	let powersBox = document.getElementById("powers-box");
@@ -1319,13 +1343,6 @@ function creatureSummaryAsText(creature) {
 	let health = creatureData[creature].getHealthValue();
 
 	return `${creatureName} the ${species} - Strength: ${strength} Health: ${health}`;
-}
-
-function winningMessage(allWinningMessages=[]){
-	let randomInt = getRandomInt(0,(allWinningMessages.length-1));
-	if(allWinningMessages.length === 0) return "Error: No winning message found";
-
-	return allWinningMessages[randomInt];
 }
 
 function getBeatenCreaturesLastRound(){
