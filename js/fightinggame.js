@@ -255,6 +255,18 @@ class Creature {
 		this.tablerowdata['opponent'] = this.opponent;
 		return this.tablerowdata;
 	}
+
+	getCreatureSummaryAsText() {
+		return `${this.name} the ${this.creatureSpecies} - Strength: ${this.strength} Health: ${this.health}`;
+	}
+
+	getPowerEffectsPreview(){
+		let message = '';
+		if(this.specialPower !=''){ 
+			message = `Special Power: ${this.specialPower}<br/>Special Power Applied: ${this.getModificationData()}`;
+		}
+		return message;
+	}
 }
 
 // Creature child classes contain attributes specific to
@@ -968,30 +980,26 @@ function stealStrengthIfApplicable(goFirst, goSecond){
 }
 
 function updateStrengthHealthAndPowersOnTable(creatureArray){
-	let rowSelected;
-	let healthValue = 0;
-	let strengthValue = 0;
-	let opponent = '';
+	let opponentField = '';
 	
 	for(let count=0;count<creatureArray.length;count++){
 		if(creatureData[creatureArray[count]].isCreatureDeleted() !== true){
-
-			healthValue = creatureData[creatureArray[count]].getHealthValue();
-			strengthValue = creatureData[creatureArray[count]].getStrengthValue();
-			opponent = creatureData[creatureArray[count]].getOpponent();
-			rowSelected = document.getElementById("row" + creatureArray[count]);
-			rowSelected.getElementsByTagName("td")[2].innerHTML = strengthValue;
-			rowSelected.getElementsByTagName("td")[3].innerHTML = healthValue;
-			rowSelected.getElementsByTagName("td")[4].innerHTML = "";
-			rowSelected.getElementsByTagName("td")[5].innerHTML = opponent;
+			opponentField = creatureData[creatureArray[count]].getOpponent();
+			writeStrengthHealthAndPowers(creatureArray[count], opponentField);
 		}
 	}
 
-	if(sittingOut !== false){
-		rowSelected = document.getElementById("row" + sittingOut);
-		rowSelected.getElementsByTagName("td")[4].innerHTML = "";
-		rowSelected.getElementsByTagName("td")[5].innerHTML = "Not in the round";
-	}
+	if(sittingOut !== false) writeStrengthHealthAndPowers(sittingOut, "Not in the round");
+}
+
+function writeStrengthHealthAndPowers(rowVal, opponentField){
+	let healthValue = creatureData[rowVal].getHealthValue();
+	let strengthValue = creatureData[rowVal].getStrengthValue();
+	let rowSelected = document.getElementById("row" + rowVal);
+	rowSelected.getElementsByTagName("td")[2].innerHTML = strengthValue;
+	rowSelected.getElementsByTagName("td")[3].innerHTML = healthValue;
+	rowSelected.getElementsByTagName("td")[4].innerHTML = "";
+	rowSelected.getElementsByTagName("td")[5].innerHTML = opponentField;
 }
 
 
@@ -1002,9 +1010,7 @@ function displayPowersAndOpponentsOnTable(goFirst = [], goSecond = [], sittingOu
 		pushPowerAndOppToTableRow(goSecond[count], false);
 	}
 
-	if(sittingOut !== false){
-		pushPowerAndOppToTableRow(sittingOut, true);
-	}
+	if(sittingOut !== false) pushPowerAndOppToTableRow(sittingOut, true);
 }
 
 
@@ -1291,7 +1297,7 @@ function displayFightOrder(goFirst, goSecond){
 }
 
 function getFighterSummary(creature, elementName){
-	let summary = creatureSummaryAsText(creature);
+	let summary = creatureData[creature].getCreatureSummaryAsText();
 	elementName.appendChild(wrapInPTags(summary, 'head'));
 		
 	return elementName;
@@ -1308,19 +1314,10 @@ function getPowerSummary(creature, elementName){
 }
 
 function showPredictedPowerEffects(creature, elementName){
-	let effects	= previewPowerEffects(creature);
+	let effects	= creatureData[creature].getPowerEffectsPreview(creature);
 	elementName.appendChild(wrapInPTags(effects));
 
 	return elementName;
-}
-
-function creatureSummaryAsText(creature) {
-	let creatureName = creatureData[creature].getName();
-	let species = creatureData[creature].getSpecies();
-	let strength = creatureData[creature].getStrengthValue();
-	let health = creatureData[creature].getHealthValue();
-
-	return `${creatureName} the ${species} - Strength: ${strength} Health: ${health}`;
 }
 
 function getBeatenCreaturesLastRound(){
@@ -1339,16 +1336,6 @@ function getBeatenCreaturesLastRound(){
 	}
 
 	return message;
-}
-
-function previewPowerEffects(creature){
-	let powers = creatureData[creature].getSpecialPower();
-	if(powers !== '') {
-		let modData = creatureData[creature].getModificationData();
-		return `Special Power: ${powers}<br/>Special Power Applied: ${modData}`;
-	}
-
-	return '';
 }
 
 function predictPointsLossFromBattle(creature, opponent) {
