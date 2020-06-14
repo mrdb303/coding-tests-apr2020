@@ -95,8 +95,8 @@ let allWitchNames = [];
 let allTrollNames = [];
 let allSnakeNames = [];
 let victoryMessages = [];
-let eliminated = [];
 
+let eliminated = [];
 let creaturesGoFirst = [];
 let creaturesGoSecond = [];
 let sittingOut = false;
@@ -154,9 +154,6 @@ let fightersInGame = [];
 let availableCreatures = ['Witch','Dragon','Snake','Troll'];
 
 let maxNumberOfCreaturesAvailable = availableCreatures.length;
-let randomCreatureType;
-let randomCreatureNumber;
-let creatureNameFound = '';
 let powers;
 let dice;
 let gameOver = false;
@@ -164,8 +161,8 @@ let waitForGameReset = false;
 let creatureTable = '';
 const ERR_IMG = 'images/error.png';
 
-let resetButton = document.getElementById('btn-reset').addEventListener('click', resetPage);
-let actionButton = document.getElementById('btn-action').addEventListener('click', rollDiceProcessPowerOrFight);
+document.getElementById('btn-reset').addEventListener('click', resetPage);
+document.getElementById('btn-action').addEventListener('click', rollDiceProcessPowerOrFight);
 let modal = document.getElementById("modal-box");
 let span = document.getElementsByClassName("close")[0];
 
@@ -181,6 +178,9 @@ function mainEntryPoint() {
 	// name data has been read in before we can manipulate it.
 
 	let errorFound = false;
+	let randomCreatureType;
+	let randomCreatureNumber;
+	let creatureNameFound = '';
 
 	witchNames = new CreatureNames(allWitchNames);
 	dragonNames = new CreatureNames(allDragonNames);
@@ -328,11 +328,12 @@ function rollTheDice(){
 
 	dice.changeDiceImages();
 	checkForPowersAndUpdatePowersOnPage();
-	resetFightingDataAndFindFighters();
+	resetFightingData();
+	updateAndShuffleListOfFightersInGame();
 	assignPowers();
 	removeExtraCreatureIffOddNumber();
 	calculateOpponents();
-	if(SHOW_GAME_MATCH_UPS_MODE === true) displayFightOrder(creaturesGoFirst, creaturesGoSecond);
+	if(SHOW_GAME_MATCH_UPS_MODE === true) outputBasicMatchup(creaturesGoFirst, creaturesGoSecond);
 }
 
 // Second of three game modes triggered by rollDiceProcessPowerOrFight()
@@ -347,7 +348,7 @@ function processPowersAction(){
 	removeTheDead();
 
 	if(SHOW_GAME_MATCH_UPS_MODE === true && totalOfCreaturesAlive() >1) {
-		outputGameData(creaturesGoFirst, creaturesGoSecond, PREVIEW_SPECIAL_POWER_RESULTS);
+		outputFullMatchup(creaturesGoFirst, creaturesGoSecond, PREVIEW_SPECIAL_POWER_RESULTS);
 	} 
 }
 
@@ -377,17 +378,19 @@ function flipActionMode(){
 	} else {
 		mode = "Roll the Dice";
 	}
-	if(gameOver === false) actionButton = document.getElementById('btn-action').value = mode;
+	if(gameOver === false) document.getElementById('btn-action').value = mode;
 }
 
 
-function resetFightingDataAndFindFighters(){
-	remainCreatures = 0;
 
+function resetFightingData(){
 	creatureData.forEach(function(item, index) {
 		creatureData[index].resetFightingData();
 	});
+}
 
+function updateAndShuffleListOfFightersInGame(){
+	remainCreatures = 0;
 	fightersInGame = creatureData.filter((creature) => {
 		return creature.isCreatureDeleted() === false}); 
 
@@ -419,11 +422,11 @@ function writeCreaturesOpponent(creatureID, opponentID){
 function assignPowers(){
 	let specialPowersPriorityList = shuffleArray(fightersInGame);
 	let powersToFetch = powers.getNumberOfPowersAssigned();
-	let power = "";
 
 	if(powersToFetch > 0){
 		let rowSelected = null;
 		let powersIssued = powers.getPowers();
+		let power = "";
 
 		// Rarer powers are chosen by default if there are more powers than players.
 		// The only downside of this is where a game won't end in test mode
@@ -588,18 +591,21 @@ function displayWinnerMessage(){
 	gameWorkings.appendChild(wrapInPTags(`<br/>Opponents defeated: 
 	${creatureData[creatureIndex].getOpponentHistoryAsString()}`));
 
+	displayPowersThatWinnerUsed(creatureIndex, gameWorkings);
+	displayTrophyAndMedal();
+	waitForGameReset = true;
+}
+
+function displayPowersThatWinnerUsed(creatureIndex, elementName){
 	let powersUsed = creatureData[creatureIndex].getPowersUsed();
 
 	if(powersUsed != false) {
-		gameWorkings.appendChild(wrapInPTags(`<br/>Powers used: ${powersUsed}.`));
+		elementName.appendChild(wrapInPTags(`<br/>Powers used: ${powersUsed}.`));
 	} else {
-		gameWorkings.appendChild(wrapInPTags(`<br/>There was no need for 
+		elementName.appendChild(wrapInPTags(`<br/>There was no need for 
 		${creatureData[creatureIndex].getName()} to resort to the use of special 
 		powers to prove superiority.`));
 	}
-
-	displayTrophyAndMedal();
-	waitForGameReset = true;
 }
 
 function removeActionButtons(){
@@ -665,6 +671,7 @@ function removeTheDead(){
 	displayCreatureCountEndIfWinner();
 }
 
+// Generic, but used for output of special powers if applicable
 function OutputArrayToDivIdAsUnorderedList(idName, arrToConvert=[]){
 	let divElement = document.getElementById(idName);
 	let ulElem = document.createElement("ul");
@@ -683,7 +690,6 @@ function OutputArrayToDivIdAsUnorderedList(idName, arrToConvert=[]){
 function checkForPowersAndUpdatePowersOnPage(){
 	
 	clearExistingHTMLOfDivId("powers-box");
-
 	let specialBox = document.getElementById("special");
 
 	if(dice.diceIsDouble() === true) {
@@ -691,10 +697,9 @@ function checkForPowersAndUpdatePowersOnPage(){
 		let powerImageName = "";
 		(dice.getDiceOne() === 1)? powerImageName = "spower.png" : powerImageName = "spowers.png";
 		specialBox.getElementsByTagName("img")[0].src = `images/${powerImageName}`;
-
 		powers.setPowers(dice.getDiceOne()); // Pass one value as it's a double value
-		
 		OutputArrayToDivIdAsUnorderedList("powers-box", powers.getPowers());
+
 	} else {
 		specialBox.getElementsByTagName("img")[0].src = "images/blank.png";
 	}
@@ -724,8 +729,8 @@ function deleteRow(rowIDNumber){
 	creatureData[rowIDNumber].deleteCreatureFromGame();
 }
 
+// Durstenfeld shuffle - courtesy of Stackoverflow
 function shuffleArray(array) {
-	// Durstenfeld shuffle - courtesy of Stackoverflow
 	for(let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[array[i], array[j]] = [array[j], array[i]];
@@ -733,13 +738,10 @@ function shuffleArray(array) {
 	return array;
 }
 
-
-
-function outputGameData(goFirst, goSecond, showPowers = false){
-	let gameWorkings = document.getElementById("output");
-	gameWorkings.innerHTML = '';
-
-	let fightLoss = '';
+// Underneath main fighter table - Full Creature Matchup
+function outputFullMatchup(goFirst, goSecond, showPowers = false){
+	let fullMatchup = document.getElementById("output");
+	fullMatchup.innerHTML = '';
 	let fightContainer = '';
 
 	for(let count = 0; count<goFirst.length; count++) {
@@ -748,38 +750,36 @@ function outputGameData(goFirst, goSecond, showPowers = false){
 		fightContainer.className='fight';
 
 		// First fighter
-		fightContainer = getFighterSummary(goFirst[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
+		fightContainer = buildMatchupFightSummaryFull(goFirst[count], goSecond[count], fightContainer, showPowers);
+		fullMatchup.appendChild(fightContainer);
 
-		if(showPowers === true) {
-			gameWorkings.appendChild(showPredictedPowerEffects(goFirst[count], fightContainer));
-		}
-		
-		fightLoss = predictPointsLossFromBattle(goFirst[count], goSecond[count]);
-		fightContainer.appendChild(fightLoss);
-		gameWorkings.appendChild(fightContainer);
-		
 		fightContainer.appendChild(wrapInPTags('vs', 'head'));
-		gameWorkings.appendChild(fightContainer);
+		fullMatchup.appendChild(fightContainer);
 
-		// Second Fighter
-		fightContainer = getFighterSummary(goSecond[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
-
-		if(showPowers === true) {
-			gameWorkings.appendChild(showPredictedPowerEffects(goSecond[count], fightContainer));
-		}
-
-		fightLoss = predictPointsLossFromBattle(goSecond[count], goFirst[count]);
-		fightContainer.appendChild(fightLoss);
-		gameWorkings.appendChild(fightContainer);
-
+		// Second fighter
+		fightContainer = buildMatchupFightSummaryFull(goSecond[count], goFirst[count], fightContainer, showPowers);
+		fullMatchup.appendChild(fightContainer);
 	}
 }
 
-function displayFightOrder(goFirst, goSecond){
-	let gameWorkings = document.getElementById("output");
-	gameWorkings.innerHTML = '';
+
+function buildMatchupFightSummaryFull(creature, opponent, fightContainer, showPowers = false){
+	fightContainer = getFighterSummary(creature, fightContainer);
+
+	if(showPowers === true) {
+		fightContainer = showPredictedPowerEffects(creature, fightContainer);
+	}
+
+	let fightLoss = predictPointsLossFromBattle(creature, opponent);
+	fightContainer.appendChild(fightLoss);
+
+	return fightContainer;
+}
+
+// Underneath main fighter table - Part Creature Matchup (before powers applied)
+function outputBasicMatchup(goFirst, goSecond){
+	let basicMatchup = document.getElementById("output");
+	basicMatchup.innerHTML = '';
 	let fightContainer = '';
 
 	for(let count = 0; count<goFirst.length; count++) {
@@ -788,18 +788,22 @@ function displayFightOrder(goFirst, goSecond){
 		fightContainer.className='fight';
 
 		// First fighter
-		fightContainer = getFighterSummary(goFirst[count], fightContainer);
-		fightContainer = getPowerSummary(goFirst[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
+		fightContainer = buildMatchupFightSummaryPart(goFirst[count], goSecond[count], fightContainer);
 
 		fightContainer.appendChild(wrapInPTags('vs', 'head'));
-		gameWorkings.appendChild(fightContainer);
+		basicMatchup.appendChild(fightContainer);
 
 		// Second fighter
-		fightContainer = getFighterSummary(goSecond[count], fightContainer);
-		fightContainer = getPowerSummary(goSecond[count], fightContainer);
-		gameWorkings.appendChild(fightContainer);
+		fightContainer = buildMatchupFightSummaryPart(goSecond[count], goFirst[count], fightContainer);
+		basicMatchup.appendChild(fightContainer);
 	}	
+}
+
+function buildMatchupFightSummaryPart(creature, opponent, fightContainer){
+	fightContainer = getFighterSummary(creature, fightContainer);
+	fightContainer = getPowerSummary(creature, fightContainer);
+
+	return fightContainer;
 }
 
 function predictPointsLossFromBattle(creature, opponent) {
