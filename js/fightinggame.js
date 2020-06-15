@@ -413,9 +413,9 @@ function calculateOpponents(){
 }
 
 
-function writeCreaturesOpponent(creatureID, opponentID){
-	let opponentName = creatureData[opponentID].getName();
-	creatureData[creatureID].setOpponent(opponentID, opponentName);
+function writeCreaturesOpponent(creature, opponent){
+	let opponentName = creatureData[opponent].getName();
+	creatureData[creature].setOpponent(opponent, opponentName);
 }
 
 
@@ -460,12 +460,15 @@ function processEndOfGoDamage(creaturesTurn = [], opposition = []){
 	let subValue;
 
 	for(let count = 0; count<creaturesTurn.length; count++) {
-		if(creatureData[creaturesTurn[count]].canSkipAGo() === false && creatureData[opposition[count]].canSkipAGo() === false) {
+		if(creatureData[creaturesTurn[count]].canSkipAGo() === false && 
+		creatureData[opposition[count]].canSkipAGo() === false) {
 
 			// Check that opponent is not dead and is not at zero 
 			// health before removing points for health 
-			if(creatureData[opposition[count]].getHealthValue() > 0  && creatureData[creaturesTurn[count]].getHealthValue() > 0) {
-				subValue = creatureData[creaturesTurn[count]].getStrengthValue() + dice.getCurrentDiceTotal();
+			if(creatureData[opposition[count]].getHealthValue() > 0  && 
+			creatureData[creaturesTurn[count]].getHealthValue() > 0) {
+				subValue = creatureData[creaturesTurn[count]].getStrengthValue() + 
+				dice.getCurrentDiceTotal();
 				creatureData[opposition[count]].removeHealthValue(subValue);
 			}
 		}
@@ -497,7 +500,8 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 		// of the object we are working with.
 		stealStrengthIfApplicable(creaturesToProcess[count], opponents[count]);
 		
-		if(creatureData[opponents[count]].getHealthValue() !== 0 && creatureData[creaturesToProcess[count]].canDecreaseHealth() === true){
+		if(creatureData[opponents[count]].getHealthValue() !== 0 && 
+		creatureData[creaturesToProcess[count]].canDecreaseHealth() === true){
 			creatureData[opponents[count]].removeHealthValue(100);
 		}
 		// Hide/skip a go called is only relevant in actual battle. The flag for
@@ -517,7 +521,8 @@ function processCreaturePowers(creaturesToProcess, opponents, sittingOut = false
 function stealStrengthIfApplicable(goFirst, goSecond){
 	let stolenStrength = 0;
 
-	if(creatureData[goSecond].getStrengthValue() !== 0 && creatureData[goFirst].canStealStrength() === true){
+	if(creatureData[goSecond].getStrengthValue() !== 0 && 
+	creatureData[goFirst].canStealStrength() === true){
 		stolenStrength = creatureData[goSecond].steal50PercentOfCreatureStrength();
 		creatureData[goFirst].increaseStrength(stolenStrength);
 		creatureData[goFirst].setStrengthStolenValue(stolenStrength);
